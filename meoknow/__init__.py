@@ -24,11 +24,19 @@ def create_app(test_config=None):
     # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
+        os.makedirs(os.path.join(app.instance_path, 'images'))
     except OSError:
         pass
+    
+    from . import cat
+
+    cat.add_functions(app)
+    
+    with app.app_context():
+        db.create_all()
 
     # a simple page that says hello
-    @app.route('/hello')
+    @app.route('/hello/')
     def hello():
         return 'Hello, World!'
 
