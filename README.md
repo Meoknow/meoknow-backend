@@ -8,6 +8,12 @@
 venv\Scripts\activate
 ```
 
+如果venv在当前上一级目录下就是
+
+```
+..\venv\Scripts\activate
+```
+
 
 
 *   在开发模式下运行应用
@@ -19,4 +25,3 @@ flask run
 ```
 
 *   本地查看 http://127.0.0.1:5000/hello
-
