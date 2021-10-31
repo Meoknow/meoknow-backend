@@ -1,13 +1,15 @@
 import os
-from io import StringIO,BytesIO
+from io import StringIO, BytesIO
 import base64
 from PIL import Image
 import re
 import random
 import PIL
+import time
+import multiprocessing as mp
 
 from flask import (
-    flash, g, redirect, render_template, request, session, url_for, send_from_directory, send_file
+	flash, g, redirect, render_template, request, session, url_for, send_from_directory, send_file
 )
 from flask.helpers import make_response
 from flask_sqlalchemy import SQLAlchemy
@@ -21,7 +23,9 @@ ALLOWED_FORMAT = ['jpg', 'jpeg', 'png']
 PHOTO_PREFIX = "localhost:5000/photos/"
 
 ERROR_INVALID_DATA = ({"code":100, "msg": "Invalid Data", "data": {}}, 400)
+ERROR_NO_CAT = ({"code":101, "msg": "No Cat Found", "data": {}}, 400)
 ERROR_PERMISSION_DENIED = ({"code":3, "msg":"Permission Denied", "data":{}}, 401)
+ERROR_INTERNAL = ({"code":2, "msg":"Server Internal Error", "data":{}}, 500)
 
 RESP_OK = {"code":0, "msg":"", "data":{}}
 
@@ -35,7 +39,7 @@ class Photo(db.Model):
 	upl_time = db.Column(db.DateTime, default=datetime.utcnow)
 	name = db.Column(db.String(120), unique=True, nullable=False)
 	# corresponding to cat
-	cat_id = db.Column(db.Integer, db.ForeignKey('cat_info.cat_id'))
+	# cat_id = db.Column(db.Integer, db.ForeignKey('cat_info.cat_id'))
 	
 	def __repr__(self):
 		return '<Name %r>' % self.name
@@ -56,26 +60,148 @@ class CatInfo(db.Model):
 	def __repr__(self):
 		return '<Name %r>' % self.name
 
+class IdentifyHistory(db.Model):
+	__table_args__ = {"extend_existing": False}
+	id = db.Column(db.Integer, primary_key=True)
+	img_url = db.Column(db.String(120), unique=False, nullable=False)
+	owner = db.Column(db.String(80), unique=False, nullable=False)
+	res = db.Column(db.String(120), unique=False, nullable=False)
+	upl_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+	# cat_photo = db.relationship('Photo', backref='catinfo')
+
+	def __repr__(self):
+		return '<url %r>' % self.img_url
+
 def add_functions(app):
+
+	from . import ml
+	mp.set_start_method('spawn')
+	parent_conn, child_conn = mp.Pipe()
+	ml_process = mp.Process(target=ml.run, args=(child_conn,))
+	ml_process.start()
+	ml_lock = mp.Lock()
+
+	@app.route('/mptest/<test_arg>')
+	def mptest(test_arg):
+		print("mptest start ", test_arg)
+		time.sleep(10)
+		print("mptest finish", test_arg)
+		return "ok"
+
+	# translate a base64 image to file and save it to db and dir
+	def upload_photo(img_64, owner):
+		
+		try:
+			file_fmt = re.findall("^data:image/(.+?);base64,", img_64)
+			if file_fmt == None:
+				return None
+			file_fmt = file_fmt[0]
+			if file_fmt not in ALLOWED_FORMAT:
+				return None
+			img_64 = re.sub("^data:image/.+;base64,", "", img_64)
+			byte_data = base64.b64decode(img_64)
+			img = Image.open(BytesIO(byte_data))
+			img_name = "".join(re.findall("[0-9]", str(datetime.utcnow())))
+			img_name = owner+img_name+str(random.randint(0,9999)).zfill(4)+"."+file_fmt
+			img_url = os.path.join(app.instance_path, "images", img_name)
+			img.save(os.path.join(app.instance_path, img_url))
+			photo = Photo(owner=owner, name=img_name)
+			db.session.add(photo)
+			db.session.commit()
+			return img_name
+		except Exception as e:
+			print(e)
+			return None
+
+	def get_cat_data(info):
+		return {
+			"cat_id":info.cat_id, 
+			"name":info.name,
+			"img_url":info.img_url,
+			"gender":info.gender,
+			"health_status":info.health_status,
+			"desexing_status":info.desexing_status,
+			"description":info.description
+		}
 
 	@app.route('/identify/', methods=['GET', 'POST'])
 	def identify():
-		if request.method == "GET":
-			img_64 = request.values("image")
+		if request.method == "POST":
+			img_64 = request.values.get("image")
 			# change the owner to current user only
 			# TODO
-			upload_photo(img_64, "public")
-
+			owner = "public"
+			img_name = upload_photo(img_64, owner)
+			if img_name == None:
+				return ERROR_INVALID_DATA
+			img_url = os.path.join(app.instance_path, "images", img_name)
+			pho_url = PHOTO_PREFIX + img_name
 			# give the image to model
 			# TODO
+			ml_lock.acquire()
+			try:
+				parent_conn.send(img_url)
+				res = parent_conn.recv()
 
-			# save this record to database
-			# TODO
+				res_cat = res["cat"]
+				res_sco = res["score"]
+				res_err = res["error"]
+
+				# if we successfully find cat, save this record to database
+				if len(res_cat) != len(res_sco):
+					resp = ERROR_INTERNAL
+				elif res_err != []:
+					print(res_err)
+					resp = ERROR_INTERNAL
+				else:
+					cats = []
+					for i in range(0, len(res_cat)):
+						catinfo = CatInfo.query.filter_by(name=res_cat[i]).first()
+						if catinfo != None:
+							cats.append({"cat_id":catinfo.cat_id, "confidence":res_sco[i]})
+					if cats == []:
+						resp = ERROR_NO_CAT
+					else:
+						idhis = IdentifyHistory(
+							img_url=img_url,
+							owner=owner,
+							res=str(cats)
+						)
+						db.session.add(idhis)
+						db.session.commit()
+					
+						resp = {"code":0, "msg":"", "data":{"cats":cats}}
 			
-			# return response
-			# TODO
+			except Exception as e:
+				print(e)
+				resp = ERROR_INTERNAL
+			finally:
+				ml_lock.release()
 
-			return RESP_OK
+			return resp
+		elif request.method == "GET":
+			page_size = request.values.get("page_size")
+			page = request.values.get("page")
+			# change the owner to current user only
+			# TODO
+			owner = "public"
+			try:
+				if owner == "admin":
+					idhis = IdentifyHistory.query.order_by(IdentifyHistory.upl_time.desc()).all()
+				else:
+					idhis = IdentifyHistory.query.filter_by(owner=owner).order_by(IdentifyHistory.upl_time).all()
+			except Exception as e:
+				return ERROR_INTERNAL
+			idhis = idhis[::-1]
+			if len(idhis) < (page-1) * page_size:
+				return {"code":0, "msg":"", "data":[]}
+			data = []
+			for i in range((page-1)*page_size, min(page*page_size, len(idhis))):
+				data.append({
+					"cats":eval(idhis[i].res),
+					"img_url":idhis[i].img_url
+				})
+			return {"code":0, "msg":"", "data":data}
 			
 	@app.route('/cats/', methods = ['GET', 'POST'])
 	def cats():
@@ -117,18 +243,6 @@ def add_functions(app):
 				print(e)
 				return ERROR_INVALID_DATA
 			return RESP_OK
-			
-
-	def get_cat_data(info):
-		return {
-			"cat_id":info.cat_id, 
-			"name":info.name,
-			"img_url":info.img_url,
-			"gender":info.gender,
-			"health_status":info.health_status,
-			"desexing_status":info.desexing_status,
-			"description":info.description
-		}
 	
 	@app.route('/cats/<cat_id>', methods = ['GET', 'POST', 'PATCH'])
 	def onecat(cat_id):
@@ -185,31 +299,6 @@ def add_functions(app):
 			return RESP_OK
 
 
-	# translate a base64 image to file and save it to db and dir
-	def upload_photo(img_64, owner):
-		
-		try:
-			file_fmt = re.findall("^data:image/(.+?);base64,", img_64)
-			if file_fmt == None:
-				return None
-			file_fmt = file_fmt[0]
-			if file_fmt not in ALLOWED_FORMAT:
-				return None
-			img_64 = re.sub("^data:image/.+;base64,", "", img_64)
-			byte_data = base64.b64decode(img_64)
-			img = Image.open(BytesIO(byte_data))
-			img_name = "".join(re.findall("[0-9]", str(datetime.utcnow())))
-			img_name = owner+img_name+str(random.randint(0,9999)).zfill(4)+"."+file_fmt
-			img_url = os.path.join(app.instance_path, "images", img_name)
-			img.save(os.path.join(app.instance_path, img_url))
-			photo = Photo(owner=owner, name=img_name)
-			db.session.add(photo)
-			db.session.commit()
-			return img_name
-		except Exception as e:
-			print(e)
-			return None
-
 	@app.route('/photos/<photo_name>', methods = ['GET', 'DELETE'])
 	def image(photo_name):
 		if request.method == 'GET':
@@ -248,6 +337,8 @@ def add_functions(app):
 	def addimage():
 		img_64 = request.values.get("image")
 		owner = request.values.get("owner")
+		# owner must be one of 1. public 2. client itself 3. admin
+		# TODO check it
 		if owner == None:
 			owner = "public"
 		img_name = upload_photo(img_64, owner)
