@@ -25,7 +25,8 @@ def create_app(test_config=None):
     try:
         os.makedirs(app.instance_path)
         os.makedirs(os.path.join(app.instance_path, 'images'))
-    except OSError:
+    except OSError as e:
+        print(e)
         pass
     
     from . import cat
