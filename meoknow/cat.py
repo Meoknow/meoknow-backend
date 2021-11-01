@@ -7,6 +7,7 @@ import random
 import PIL
 import time
 import multiprocessing as mp
+import json
 
 from flask import (
 	flash, g, redirect, render_template, request, session, url_for, send_from_directory, send_file
@@ -127,7 +128,8 @@ def add_functions(app):
 	@app.route('/identify/', methods=['GET', 'POST'])
 	def identify():
 		if request.method == "POST":
-			img_64 = request.values.get("image")
+			rdata = request.get_json()
+			img_64 = rdata.get("image")
 			# change the owner to current user only
 			# TODO
 			owner = "public"
@@ -182,6 +184,8 @@ def add_functions(app):
 		elif request.method == "GET":
 			page_size = request.values.get("page_size")
 			page = request.values.get("page")
+			if type(page_size) != int or type(page) != int:
+				return ERROR_INVALID_DATA
 			# change the owner to current user only
 			# TODO
 			owner = "public"
@@ -212,10 +216,13 @@ def add_functions(app):
 				cats_data.append(get_cat_data(info))
 			return {"code": 0, "msg": "", "data" : cats_data}
 		elif request.method == 'POST':
+			rdata = request.get_json()
 			# require admin
-			name = request.values.get("name")
-			img_64 = request.values.get("image")
-			img_url = request.values.get("img_url")
+			name = rdata.get("name")
+			if name == None:
+				return ERROR_INVALID_DATA
+			img_64 = rdata.get("image")
+			img_url = rdata.get("img_url")
 
 			if img_64 == None and img_url != None:
 				pass
@@ -224,10 +231,10 @@ def add_functions(app):
 			else:
 				return ERROR_INVALID_DATA
 
-			gender = request.values.get("gender")
-			health_status = request.values.get("health_status")
-			desexing_status = request.values.get("desexing_status")
-			description = request.values.get("description")
+			gender = rdata.get("gender")
+			health_status = rdata.get("health_status")
+			desexing_status = rdata.get("desexing_status")
+			description = rdata.get("description")
 			cat_info = CatInfo(
 				name=name,
 				img_url=img_url,
@@ -261,9 +268,10 @@ def add_functions(app):
 
 		else:
 			# require admin
-			name = request.values.get("name")
-			img_64 = request.values.get("image")
-			img_url = request.values.get("img_url")
+			rdata = request.get_json()
+			name = rdata.get("name")
+			img_64 = rdata.get("image")
+			img_url = rdata.get("img_url")
 
 			if img_64 == None:
 				pass
@@ -272,24 +280,26 @@ def add_functions(app):
 			else:
 				return ERROR_INVALID_DATA
 					
-			gender = request.values.get("gender")
-			health_status = request.values.get("health_status")
-			desexing_status = request.values.get("desexing_status")
-			description = request.values.get("description")
+			gender = rdata.get("gender")
+			health_status = rdata.get("health_status")
+			desexing_status = rdata.get("desexing_status")
+			description = rdata.get("description")
 			cat = CatInfo.query.get(cat_id)
 			if cat == None:
 				return ERROR_INVALID_DATA
 
+			if request.method == "PUT" or name != None:
+				cat.name = name
 			if request.method == "PUT" or img_url != None:
-				cat.img_url = request.values.get("img_url")
+				cat.img_url = img_url
 			if request.method == "PUT" or gender != None:
-				cat.gender = request.values.get("gender")
+				cat.gender = gender
 			if request.method == "PUT" or health_status != None:
-				cat.health_status = request.values.get("health_status")
+				cat.health_status = health_status
 			if request.method == "PUT" or desexing_status != None:
-				cat.desexing_status = request.values.get("desexing_status")
+				cat.desexing_status = desexing_status
 			if request.method == "PUT" or description != None:
-				cat.description = request.values.get("description")
+				cat.description = description
 
 			try:
 				db.session.commit()
@@ -305,8 +315,7 @@ def add_functions(app):
 
 			photo = Photo.query.filter_by(name=photo_name).first()
 			if photo == None:
-				error = "no photo"
-				flash(error)
+				abort(404)
 			
 			if photo.owner == 'public':
 				img_url = os.path.join(app.instance_path, "images", photo_name)
@@ -335,8 +344,11 @@ def add_functions(app):
 	# require admin
 	@app.route('/photos/', methods = ['POST'])
 	def addimage():
-		img_64 = request.values.get("image")
-		owner = request.values.get("owner")
+		rdata = request.get_json()
+		img_64 = rdata.get("image")
+		owner = rdata.get("owner")
+		if img_64 == None:
+			return ERROR_INVALID_DATA
 		print(img_64, type(img_64))
 		print(owner, type(owner))
 		# owner must be one of 1. public 2. client itself 3. admin
