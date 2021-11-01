@@ -24,9 +24,11 @@ def create_app(test_config=None):
     # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
+    except OSError:
+        pass
+    try:
         os.makedirs(os.path.join(app.instance_path, 'images'))
-    except OSError as e:
-        print(e)
+    except OSError:
         pass
     
     from . import cat
