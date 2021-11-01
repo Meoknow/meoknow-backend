@@ -337,6 +337,8 @@ def add_functions(app):
 	def addimage():
 		img_64 = request.values.get("image")
 		owner = request.values.get("owner")
+		print(img_64, type(img_64))
+		print(owner, type(owner))
 		# owner must be one of 1. public 2. client itself 3. admin
 		# TODO check it
 		if owner == None:
