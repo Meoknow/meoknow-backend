@@ -33,4 +33,4 @@ def format_time(now):
     return now.strftime('%Y-%m-%d %H:%M:%S')
 
 def format_timestamp(now):
-    return str(int(now.timestamp()))
+    return int(now.timestamp())

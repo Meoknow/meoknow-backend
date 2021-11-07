@@ -2,8 +2,7 @@ from flask import jsonify, request, abort, send_file, current_app
 from meoknow import db
 from .util import exception_handler, format_time, format_timestamp
 from .auth import login_check
-from .model import Comment, User, Comment_Like
-from .cat import CatInfo
+from .model import Comment, User, Comment_Like, CatInfo
 import json, uuid, re, base64, os
 from io import BytesIO
 from PIL import Image
