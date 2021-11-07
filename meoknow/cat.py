@@ -10,7 +10,7 @@ import multiprocessing as mp
 import json
 
 from flask import (
-	flash, g, redirect, render_template, request, session, url_for, send_from_directory, send_file
+	flash, g, redirect, render_template, request, session, url_for, send_from_directory, send_file, current_app
 )
 from flask.helpers import make_response
 from flask_sqlalchemy import SQLAlchemy
@@ -21,7 +21,7 @@ from datetime import datetime
 from meoknow import db
 
 ALLOWED_FORMAT = ['jpg', 'jpeg', 'png']
-PHOTO_PREFIX = "localhost:5000/photos/"
+PHOTO_PREFIX = current_app.config.get("URI_AUTHORITY", "localhost:5000") + "/photos/"
 
 ERROR_INVALID_DATA = ({"code":100, "msg": "Invalid Data", "data": {}}, 400)
 ERROR_NO_CAT = ({"code":101, "msg": "No Cat Found", "data": {}}, 400)
