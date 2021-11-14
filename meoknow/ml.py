@@ -85,50 +85,6 @@ def mapper(dataset_dict):
 
     return image,mask 
 
-if __name__ == "__main__":
-    name = {"1":"杜若",
-        "2":"小宝",
-        "3":"雪风",
-        "4":"塵尾"}
-    
-    if hasattr(torch.cuda, 'empty_cache'):
-        torch.cuda.empty_cache()
-    cfg = get_cfg()
-    cfg.MODEL.DEVICE = "cpu"
-    cfg.DATALOADER.ASPECT_RATIO_GROUPING = False
-    cfg.merge_from_file(
-        "configs/mask_rcnn_R_50_FPN_3x.yaml"
-    )
-    cfg.DATALOADER.NUM_WORKERS = 0
-
-
-    os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
-    os.environ["CUDA_VISIBLE_DEVICES"] = ""
-
-    
-
-    cfg.MODEL.WEIGHTS = os.path.join("/data2/qiweili/logs/cat", "model_0009999.pth") 
-
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5 # 设置一个阈值
-    predictor = DefaultPredictor(cfg)
-    #print('model built',flush=True)
-    #image =cv2.imread("3.png")
-
-    image =np.array(Image.open("3.png").convert("RGB"))[:,:,::-1]
-    print(image.shape)
-    image = image.copy()
-    out = predictor(image)
-    bbox=out["instances"].pred_boxes.tensor.int().cpu().numpy()
-    #print(bbox)
-    print('\n\n\n\n\n\n\n\n\n\n')
-    print('cat is',name[str(out["instances"].pred_classes.cpu().numpy()[0])])
-    print('scores:',out["instances"].scores.cpu().numpy()[0])
-    #image = image[:,:,::-1].copy()
-    for i in range(len(bbox)):
-        cv2.rectangle(np.ascontiguousarray(image), (bbox[i][0], bbox[i][1]), (bbox[i][2], bbox[i][3]),
-                    color=(0,0,255), thickness = 10 )
-    cv2.imwrite('after.jpg',image)
-
 def run(conn) :
     #print(q)
     name = {"1":"杜若",
@@ -152,7 +108,7 @@ def run(conn) :
 
     cfg.MODEL.WEIGHTS = os.path.join("/home/meoknow/logs", "model_0009999.pth") 
 
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5 # 设置一个阈值
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.2 # 设置一个阈值
     predictor = DefaultPredictor(cfg)
     #print('model built',flush=True)
     #image =cv2.imread("3.png") 
@@ -181,29 +137,18 @@ def run(conn) :
             conn.send(dict)
             continue 
 
-        #image =np.array(Image.open(img).convert("RGB"))[:,:,::-1]
-        #print(image.shape,flush=True)
         image = image.copy()
         out = predictor(image)
-        bbox=out["instances"].pred_boxes.tensor.int().cpu().numpy()
-        #print(bbox)
-        #print('\n\n\n\n\n\n\n\n\n\n',flush=True)
 
-        #print('cat is',name[str(out["instances"].pred_classes.cpu().numpy()[0])],flush=True)
-        dict["cat"].append(name[str(out["instances"].pred_classes.cpu().numpy()[0])])
-        dict["score"].append(out["instances"].scores.cpu().numpy()[0])
+        if  len(out["instances"].scores.cpu().numpy())== 0 :
+            dict["cat"].append('杜若')
+            dict["score"].append(0.0)
+        else :
+            for i in range(min(3,len(out["instances"].scores.cpu().numpy()))) :
+                dict["cat"].append(name[str(out["instances"].pred_classes.cpu().numpy()[i])])
+                dict["score"].append(out["instances"].scores.cpu().numpy()[i])
         conn.send(dict)
-        #return_dict.append(dict)
-        #return_dict.append(name[str(out["instances"].pred_classes.cpu().numpy()[0])])
-        #print('scores:',out["instances"].scores.cpu().numpy()[0],flush=True)
-        #image = image[:,:,::-1].copy()
-        '''
-        for i in range(len(bbox)):
-            cv2.rectangle(np.ascontiguousarray(image), (bbox[i][0], bbox[i][1]), (bbox[i][2], bbox[i][3]),
-                        color=(0,0,255), thickness = 10 )
-        cv2.imwrite('after.jpg',image)
-        '''
-        #print(11)
+
 
 
 
