@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}
+猫咪管理
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-9 mt-5">
+        <div class="row">
+            <div class="col-12 col-md-3 border">
+            <div style="height: 500px; overflow-y: auto; overflow-x: hidden;" class="text-center">
+                <div class="d-grid mt-3">
+                    <button id="newcat" onclick="switch_empty_cat()" class="btn btn-outline-info">添加喵咪</button>
+                </div>
+                <hr>
+                <div id="cat_container">
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-9 border">
+            <form class="mt-4">
+                <div class="row">
+                    <div class="col-6">
+                        <input type="number" id="cat_id" style="display: none;" value="-1">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="name" class="col-form-label">名称</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="text" id="name" required="required" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row my-1 g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="gender" class="col-form-label">性别</label>
+                            </div>
+                            <div class="col-auto">
+                                <select id="gender" class="form-select">
+                                    <option>公</option>
+                                    <option>母</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row my-1 g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="health_status" class="col-form-label">健康情况</label>
+                            </div>
+                            <div class="col-auto">
+                                <select id="health_status" class="form-select">
+                                    <option>健康</option>
+                                    <option>生病</option>
+                                    <option>失踪</option>
+                                    <option>送养</option>
+                                    <option>离世</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row my-1 g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="desexing_status" class="col-form-label">绝育情况</label>
+                            </div>
+                            <div class="col-auto">
+                                <select id="desexing_status" class="form-select">
+                                    <option>绝育</option>
+                                    <option>未绝育</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <input accept="image/*" type="file" id="imgInp" style="display: none"/>
+                        <img id="catimg" height="200px" src="https://bbs.pku.edu.cn/v2/images/user/portrait-neu.png"/>
+                    </div>
+                </div>
+                <div class="row my-2 justify-content-center">
+                    <div class="col-12">
+                        <label for="description" class="form-label">描述</label>
+                        <textarea class="form-control" id="description" rows="3"></textarea>
+                    </div>
+                  </div>
+                <button type="submit" onclick="return do_upload();" class="btn btn-primary">上传</button>
+                <button type="button" onclick="delete_cat()" class="btn btn-danger">删除</button>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block jsscript %}
+<script>
+    var image_changed = false;
+    var cat_info = [];
+    function parseUrl(url) {
+        return "//" + url;
+    }
+    function feedback_success(msg) {
+        alert(msg);
+    }
+    function feedback_warning(msg) {
+        alert(msg);
+    }
+    function switch_empty_cat() {
+        $(".cat").removeClass("selected-cat");
+        switch_data({
+            cat_id: -1,
+            name: "",
+            gender: "公",
+            health_status: "健康",
+            desexing_status: "绝育",
+            description: "",
+            img_url: "bbs.pku.edu.cn/v2/images/user/portrait-neu.png",
+        });
+    }
+    function switch_cat(idx) {
+        console.log(idx);
+        $(".cat").each(function() {
+            if ($(this).attr("idx") == idx) {
+                $(this).addClass("selected-cat");
+            } else {
+                $(this).removeClass("selected-cat");
+            }
+        });
+        switch_data(cat_info[idx]);
+    }
+    function switch_data(data) {
+        // TODO: confirm
+        $("#cat_id").val(data.cat_id);
+        $("#name").val(data.name);
+        $("#gender").val(data.gender);
+        $("#health_status").val(data.health_status);
+        $("#desexing_status").val(data.desexing_status);
+        $("#description").val(data.description);
+        $("#catimg").attr("src", parseUrl(data.img_url));
+        image_changed = false;
+    }
+    async function update_cat() {
+        var payload = {
+            cat_id: parseInt($("#cat_id").val()),
+            name: $("#name").val(),
+            gender: $("#gender").val(),
+            health_status: $("#health_status").val(),
+            desexing_status: $("#desexing_status").val(),
+            description: $("#description").val(),
+        };
+        if (image_changed)
+            payload.image = await get_image();
+        $.ajax({
+            type: "POST",
+            url: '{{ url_for("admin_update_cat_api") }}',
+            data: JSON.stringify(payload),
+            success(e) {
+                if (e.code == 0) {
+                    feedback_success("更新成功");
+                    main();
+                } else {
+                    feedback_success("更新失败");
+                }
+            },
+            error(e) {
+                
+            },
+            contentType : "application/json",
+        });
+    }
+    function delete_cat() {
+        var cat_id = parseInt($("#cat_id").val());
+        if (cat_id == -1) return feedback_warning("猫咪信息未上传");
+        $.ajax({
+            type: "POST",
+            url: '{{ url_for("admin_delete_cat_api") }}',
+            data: JSON.stringify({
+                cat_id: cat_id
+            }),
+            success(e) {
+                if (e.code == 0) {
+                    feedback_success("删除成功");
+                    main();
+                    switch_empty_cat();
+                } else {
+                    console.warn(e.msg);
+                    feedback_warning("删除失败");
+                }
+            },
+            error(e) {
+                console.warn(e.msg);
+                feedback_warning("未知错误");
+            },
+            contentType : "application/json",
+        });
+    }
+    function get_image() {
+        return new Promise((res, rej) => {
+            var file = document.getElementById("imgInp").files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    console.log(e.target.result);
+                    res(e.target.result);
+                }
+                reader.onerror = function (e) {
+                    rej("G!");
+                }
+                reader.readAsDataURL(file);
+            } else {
+                feedback_warning("请添加图片");
+                rej("G!");
+            }
+        })
+    }
+    async function new_cat() {
+        console.log("new_cat");
+        $.ajax({
+            type: "POST",
+            url: '{{ url_for("admin_add_cat_api") }}',
+            data: JSON.stringify({
+                name: $("#name").val(),
+                gender: $("#gender").val(),
+                health_status: $("#health_status").val(),
+                desexing_status: $("#desexing_status").val(),
+                description: $("#description").val(),
+                image: await get_image(),
+            }),
+            success(e) {
+                if (e.code == 0) {
+                    main();
+                    feedback_success("新增成功");
+                } else {
+                    console.log(e.msg);
+                    feedback_warning("新增失败");
+                }
+            },
+            error(e) {
+                feedback_warning("新增失败");
+            },
+            contentType : "application/json",
+        });
+    }
+    function do_upload() {
+        console.log("do_upload");
+        if (parseInt($("#cat_id").val()) == -1) new_cat();
+        else update_cat();
+        return false;
+    }
+    function load_page(page) {
+        return new Promise((res) => {
+            $.get("{{ url_for('admin_get_all_cat_api') }}", {page: page}).then((e) => {
+                res(e.data.resp);
+            })
+        })
+    }
+    function load_all() {
+        return new Promise((res) => {
+            $.get("{{ url_for('admin_get_all_cat_api') }}").then((e) => {
+                res(e.data.resp);
+            })
+        })
+    }
+    function render_list(cats) {
+        cat_info = cats;
+        $("#cat_container").empty();
+        for (var i = 0; i < cats.length; i++) {
+            console.log(cats[i].img_url);
+            var root = $("<div></div>").css("cursor", "pointer").addClass("row my-2 py-1 cat").attr("idx", i);
+            var img = $("<div></div>").addClass("col-4").append(
+                $("<img></img>")
+                    .addClass("img-fluid noselect")
+                    .attr("src", parseUrl(cats[i].img_url)) // TODO: hard coded scheme
+            );
+            var name = $("<div></div>").addClass("col-8").append(
+                $("<p></p>").addClass("noselect").text(cats[i].name)
+            );
+            root.append(img).append(name);
+            $(root).click(function() {
+                switch_cat($(this).attr("idx"));
+            });
+            $("#cat_container").append(root);
+        }
+    }
+    async function main() {
+        render_list(await load_all());
+    }
+    $(() => {
+        $("#catimg").click(() => {
+            $("#imgInp").click();
+        });
+        imgInp.onchange = evt => {
+            const [file] = imgInp.files
+            if (file) {
+                image_changed = true;
+                catimg.src = URL.createObjectURL(file);
+            }
+        };
+        main();
+    });
+</script>
+{% endblock %}
