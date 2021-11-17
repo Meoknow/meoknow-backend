@@ -110,7 +110,7 @@ def run(conn) :
 
     cfg.MODEL.WEIGHTS = os.path.join("/home/meoknow/logs", "model_final.pth") 
 
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.01 # 设置一个阈值
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.0 # 设置一个阈值
     predictor = DefaultPredictor(cfg)
     #print('model built',flush=True)
     #image =cv2.imread("3.png") 
