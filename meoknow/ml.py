@@ -90,7 +90,9 @@ def run(conn) :
     name = {"1":"杜若",
         "2":"小宝",
         "3":"雪风",
-        "4":"塵尾"}
+        "4":"塵尾",
+        "5":"姜丝鸭",
+        "6":"小尾巴"}
     
     cfg = get_cfg()
 
@@ -106,7 +108,7 @@ def run(conn) :
 
     
 
-    cfg.MODEL.WEIGHTS = os.path.join("/home/meoknow/logs", "model_0009999.pth") 
+    cfg.MODEL.WEIGHTS = os.path.join("/home/meoknow/logs", "model_final.pth") 
 
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.2 # 设置一个阈值
     predictor = DefaultPredictor(cfg)
@@ -144,9 +146,16 @@ def run(conn) :
             dict["cat"].append('杜若')
             dict["score"].append(0.0)
         else :
-            for i in range(min(3,len(out["instances"].scores.cpu().numpy()))) :
-                dict["cat"].append(name[str(out["instances"].pred_classes.cpu().numpy()[i])])
-                dict["score"].append(out["instances"].scores.cpu().numpy()[i])
+            temp = []
+            cls = out["instances"].pred_classes.cpu().numpy()
+            score = out["instances"].scores.cpu().numpy()
+            for i in range(min(10,len(score))) :
+                if cls[i] in temp :
+                    continue 
+                else :
+                    temp.append(cls[i])
+                    dict["cat"].append(name[str(cls[i])])
+                    dict["score"].append(score[i])
         conn.send(dict)
 
 
