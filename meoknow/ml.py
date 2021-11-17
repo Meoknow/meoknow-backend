@@ -150,6 +150,8 @@ def run(conn) :
             cls = out["instances"].pred_classes.cpu().numpy()
             score = out["instances"].scores.cpu().numpy()
             for i in range(min(10,len(score))) :
+                if cls[i]==0 or cls[i]>len(name):
+                    continue
                 if cls[i] in temp :
                     continue 
                 else :
