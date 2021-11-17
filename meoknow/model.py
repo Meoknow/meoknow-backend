@@ -53,7 +53,7 @@ class CatInfo(db.Model):
 	gender = db.Column(db.String(80))
 	health_status = db.Column(db.String(80))
 	desexing_status = db.Column(db.String(80))
-	desexing_time = db.Column(db.String(80))
+	# desexing_time = db.Column(db.String(80))
 	description = db.Column(db.String(80))
 
 	img_url = db.Column(db.String(120), unique=True, nullable=False)

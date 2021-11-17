@@ -108,7 +108,7 @@ def add_functions(app):
 				for i in range(0, len(res_cat)):
 					catinfo = CatInfo.query.filter_by(name=res_cat[i]).first()
 					if catinfo != None:
-						cats.append({"cat_id":catinfo.cat_id, "confidence":str)res_sco[i])})
+						cats.append({"cat_id":catinfo.cat_id, "confidence":str(round(res_sco[i],2))})
 				if cats == []:
 					resp = ERROR_NO_CAT
 				else:
