@@ -110,7 +110,7 @@ def run(conn) :
 
     cfg.MODEL.WEIGHTS = os.path.join("/home/meoknow/logs", "model_final.pth") 
 
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.0 # 设置一个阈值
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.01 # 设置一个阈值
     predictor = DefaultPredictor(cfg)
     #print('model built',flush=True)
     #image =cv2.imread("3.png") 
@@ -150,6 +150,8 @@ def run(conn) :
             cls = out["instances"].pred_classes.cpu().numpy()
             score = out["instances"].scores.cpu().numpy()
             for i in range(min(10,len(score))) :
+                if cls[i]==0 or cls[i]>len(name):
+                    continue
                 if cls[i] in temp :
                     continue 
                 else :

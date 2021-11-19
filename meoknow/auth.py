@@ -47,8 +47,8 @@ def login_check(admin=False):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			# temporarily disabling login_check
-			request.user_id = 'admin'
-			return func(*args, **kwargs)
+			# request.user_id = 'admin'
+			# return func(*args, **kwargs)
 			token = request.headers.get("Auth-Token", "")
 			if check_jwt(token) == False:
 				return jsonify({
