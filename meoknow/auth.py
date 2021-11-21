@@ -110,7 +110,7 @@ def add_functions(app):
 	@app.route("/session")
 	@exception_handler
 	def login():
-		code = request.get("code", None)
+		code = request.args.get("code", None)
 		if code == None:
 			return jsonify({
 				"code": 100,
