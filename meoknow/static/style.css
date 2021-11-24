@@ -11,6 +11,18 @@
     background-color: aliceblue;
 }
 
+.delete-button {
+    padding: 0.35em 0.65em;
+    font-size: .75em;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.comment-message {
+    text-overflow:ellipsis;
+    overflow:hidden;
+}
+
 /* width */
 ::-webkit-scrollbar {
     width: 1px;
@@ -18,15 +30,15 @@
 
 /* Track */
 ::-webkit-scrollbar-track {
-background: #f1f1f1;
+    background: #f1f1f1;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-background: #888;
+    background: #888;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-background: #555;
+    background: #555;
 }
