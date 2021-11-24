@@ -351,9 +351,9 @@ def add_functions(app):
 				"data": {}
 			}), 400
 
-		record = Comment.query.filter_by(
+		record = Comment_Like.query.filter_by(
 			comment_id=comment_id,
-			owner=request.user_id
+			user_id=request.user_id
 		).one_or_none()
 
 		if record:

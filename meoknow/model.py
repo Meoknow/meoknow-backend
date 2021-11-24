@@ -3,18 +3,18 @@ from datetime import datetime
 
 class Comment(db.Model):
 	__table_args__ = {"extend_existing": False}
-	comment_id = db.Column(db.Integer, primary_key=True)
-	main_comment_id = db.Column(db.Integer, nullable=False)
-	reply_id = db.Column(db.Integer, nullable=False)
-	is_reply = db.Column(db.Boolean, nullable=False)
-	like = db.Column(db.Integer, nullable=False)
+	comment_id = db.Column(db.Integer, primary_key=True)	# 当前评论/回复的 id
+	main_comment_id = db.Column(db.Integer, nullable=False)	# 根评论 id
+	reply_id = db.Column(db.Integer, nullable=False)		# 回复的评论/回复的 id
+	is_reply = db.Column(db.Boolean, nullable=False)		# 是否是回复
+	like = db.Column(db.Integer, nullable=False)			# 点赞数量
 	create_time = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-	owner = db.Column(db.String(80), nullable=False)
-	parent_owner = db.Column(db.String(80), nullable=False)
-	cat_id = db.Column(db.Integer, nullable=False)
-	content = db.Column(db.String, nullable=False)
-	images_path = db.Column(db.String, nullable=False)
-	is_hidden = db.Column(db.Boolean, nullable=False)
+	owner = db.Column(db.String(80), nullable=False)		# 当前评论/回复的拥有者
+	parent_owner = db.Column(db.String(80), nullable=False)	# 回复的评论/回复的拥有者
+	cat_id = db.Column(db.Integer, nullable=False)			# 根评论所属猫 id
+	content = db.Column(db.String, nullable=False)			# 内容
+	images_path = db.Column(db.String, nullable=False)		# 图片路径
+	is_hidden = db.Column(db.Boolean, nullable=False)		# 是否隐藏
 
 class Comment_Like(db.Model):
 	__table_args__ = {"extend_existing": False}

@@ -1,12 +1,14 @@
 from flask import session, redirect, url_for, request, jsonify, render_template
 from .util import exception_handler
-from .model import CatInfo, Photo
+from .model import CatInfo, Photo, Comment
+from .comment import get_nickname_by_userid, get_avatar_by_userid, get_url_from_path
 from .cat import ALLOWED_FORMAT, PHOTO_PREFIX
 from meoknow import db
 from io import BytesIO
 from datetime import datetime
 import base64
 import re
+import json
 import os
 import functools
 import uuid
@@ -197,8 +199,9 @@ def add_functions(app):
 	@exception_handler
 	@admin_login_check
 	def admin_get_all_cat_api():
-		page = request.args.get("page", 1)
-		if not isinstance(page, int):
+		try:
+			page = int(request.args.get("page", 1))
+		except:
 			return jsonify({
 				"code": 100,
 				"msg": "invalid page",
@@ -225,6 +228,147 @@ def add_functions(app):
 			}
 		})
 
+	def format_comment(comment):
+		attributes = [
+			"comment_id", "main_comment_id", "reply_id", "is_reply",
+			"like", "create_time", "owner", "parent_owner", "cat_id",
+			"content", "is_hidden"
+		]
+		data = {
+			attr: getattr(comment, attr)
+			for attr in attributes
+		}
+		data["images"] = [
+			get_url_from_path(x) for x in json.loads(comment.images_path)
+		]
+		data["nickname"] = get_nickname_by_userid(data["owner"])
+		data["avatar"] = get_avatar_by_userid(data["owner"])
+		data["parent_nickname"] = get_nickname_by_userid(data["parent_owner"])
+		data["parent_avatar"] = get_avatar_by_userid(data["parent_owner"])
+		return data
+
+	@app.route("/admin/get_all_comments_api", methods=["GET"])
+	@exception_handler
+	@admin_login_check
+	def admin_get_all_comments_api():
+		page_size = 10
+		try:
+			page = int(request.args.get("page", 1))
+		except:
+			return jsonify({
+				"code": 100,
+				"msg": "invalid page",
+				"data": {}
+			})
+		result = (Comment.query.order_by(Comment.create_time.desc())
+			.paginate(page, page_size, False))
+		resp = []
+		for item in result.items:
+			resp.append(format_comment(item))
+		return jsonify({
+			"code": 0,
+			"msg": "",
+			"data": {
+				"resp": resp,
+				"maxpage": (result.total + page_size - 1) // page_size
+			}
+		})
+	
+	@app.route("/admin/get_comments_by_cat", methods=["GET"])
+	@exception_handler
+	@admin_login_check
+	def admin_get_comments_by_cat():
+		page_size = 10
+		try:
+			page = int(request.args.get("page", 1))
+			cat_id = int(request.args.get("cat_id", 1))
+		except:
+			return jsonify({
+				"code": 100,
+				"msg": "invalid page or cat_id",
+				"data": {}
+			})
+		result = (Comment.query.order_by(Comment.create_time.desc())
+			.filter_by(cat_id=cat_id, is_reply=False).paginate(page, page_size, False))
+		resp = []
+		for item in result.items:
+			resp.append(format_comment(item))
+		return jsonify({
+			"code": 0,
+			"msg": "",
+			"data": {
+				"resp": resp,
+				"maxpage": (result.total + page_size - 1) // page_size
+			}
+		})
+	
+	@app.route("/admin/get_comment", methods=["GET"])
+	@exception_handler
+	@admin_login_check
+	def admin_get_comment():
+		try:
+			comment_id = int(request.args.get("comment_id", -1))
+			comment = Comment.query.filter_by(comment_id=comment_id).one_or_none()
+			if comment:
+				return jsonify({
+					"code": 0,
+					"msg": "",
+					"data": {
+						"comment": format_comment(comment)
+					}
+				})
+			raise ValueError("Invalid comment_id")
+		except:
+			return jsonify({
+				"code": 100,
+				"msg": "Invalid comment_id",
+				"data": {}
+			})
+
+	@app.route("/admin/hide_comment_api", methods=["POST"])
+	@exception_handler
+	@admin_login_check
+	def admin_hide_comment_api():
+		data = request.get_json()
+		comment_id = data.get("comment_id", -1)
+		if isinstance(comment_id, int):
+			comment = Comment.query.filter_by(comment_id=comment_id).one_or_none()
+			if comment:
+				comment.is_hidden = True
+				db.session.commit()
+				return jsonify({
+					"code": 0,
+					"msg": "",
+					"data": {}
+				})
+		return jsonify({
+			"code": 100,
+			"msg": "Invalid comment_id.",
+			"data": {}
+		})
+
+	@app.route("/admin/show_comment_api", methods=["POST"])
+	@exception_handler
+	@admin_login_check
+	def admin_show_comment_api():
+		data = request.get_json()
+		comment_id = data.get("comment_id", -1)
+		if isinstance(comment_id, int):
+			comment = Comment.query.filter_by(comment_id=comment_id).one_or_none()
+			if comment:
+				comment.is_hidden = False
+				db.session.commit()
+				return jsonify({
+					"code": 0,
+					"msg": "",
+					"data": {}
+				})
+		return jsonify({
+			"code": 100,
+			"msg": "Invalid comment_id.",
+			"data": {}
+		})
+
 	@app.route("/admin/login")
 	def admin_login():
 		if session.get("verified", False) == True:
@@ -242,3 +386,9 @@ def add_functions(app):
 		if session.get("verified", False) == False:
 			return redirect(url_for("admin_login"))
 		return render_template("cat.html")
+	
+	@app.route("/admin/comment")
+	def admin_comment():
+		if session.get("verified", False) == False:
+			return redirect(url_for("admin_login"))
+		return render_template("comment.html")
