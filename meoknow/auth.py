@@ -16,6 +16,8 @@ JWT_SECRET = current_app.config.get("JWT_SECRET", "dev")
 JWT_ALGORITHM = current_app.config.get("JWT_ALGORITHM", "HS512")
 EXPIRE_SECONDS = current_app.config.get("JWT_EXPIRE_SECONDS", 30 * 86400) # 1 month
 
+BYPASS_LOGIN_CHECK = current_app.config.get("BYPASS_LOGIN_CHECK", False)
+
 def get_jwt_uid(payload):
 	try:
 		data = jwt.decode(payload, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -47,8 +49,9 @@ def login_check(admin=False):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			# temporarily disabling login_check
-			# request.user_id = 'admin'
-			# return func(*args, **kwargs)
+			if BYPASS_LOGIN_CHECK:
+				request.user_id = 'admin'
+				return func(*args, **kwargs)
 			token = request.headers.get("Auth-Token", "")
 			if check_jwt(token) == False:
 				return jsonify({
