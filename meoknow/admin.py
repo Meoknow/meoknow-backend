@@ -13,12 +13,15 @@ import os
 import functools
 import uuid
 import random
+import string
+import hashlib
 from PIL import Image
 
 
 def add_functions(app):
 	ADMIN_USERNAME = app.config.get("ADMIN_USERNAME", "dev")
 	ADMIN_PASSWORD = app.config.get("ADMIN_PASSWORD", "dev")
+	ADMIN_LOGINNONCE = ''.join(random.choices(string.ascii_uppercase, k=16))
 	def upload_photo(img_64, owner):
 		try:
 			file_fmt = re.findall("^data:image/(.+?);base64,", img_64)
@@ -60,7 +63,10 @@ def add_functions(app):
 		data = request.get_json()
 		username = data.get("username", "")
 		password = data.get("password", "")
-		if username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
+		sha256pwd = hashlib.sha256(
+			(ADMIN_PASSWORD + ADMIN_LOGINNONCE).encode("utf-8")
+		).hexdigest().lower()
+		if username != ADMIN_USERNAME or password.lower() != sha256pwd:
 			return jsonify({
 				"code": 1,
 				"msg": "invalid username or password",
@@ -373,7 +379,7 @@ def add_functions(app):
 	def admin_login():
 		if session.get("verified", False) == True:
 			return redirect(url_for("admin_index"))
-		return render_template("login.html")
+		return render_template("login.html", nonce=ADMIN_LOGINNONCE)
 	
 	@app.route("/admin/")
 	def admin_index():
