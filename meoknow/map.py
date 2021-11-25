@@ -27,14 +27,20 @@ def add_functions(app):
 		markers = CatMarker.query.order_by(CatMarker.upl_time).limit(MARKER_COUNT_MAX)
 		data = []
 		for marker in markers:
-			if (datetime.now() - marker.upl_time).minute < MARKER_TIME_MAX_MINUTE:
+			
+			if (datetime.utcnow() - marker.upl_time).seconds / 60 < MARKER_TIME_MAX_MINUTE:
 				
 				if marker.user_id == None:
 					username = None
 					avatar = None
 				else:
-					username = get_nickname_by_userid(marker.user_id)
-					avatar = get_avatar_by_userid(marker.user_id)
+					try:
+						username = get_nickname_by_userid(marker.user_id)
+						avatar = get_avatar_by_userid(marker.user_id)
+					except ValueError as e:
+						print(e)
+						username = None
+						avatar = None
 
 				data.append({
 					"id": marker.id,

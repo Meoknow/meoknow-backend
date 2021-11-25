@@ -50,7 +50,7 @@ def login_check(admin=False):
 		def wrapper(*args, **kwargs):
 			# temporarily disabling login_check
 			if BYPASS_LOGIN_CHECK:
-				request.user_id = 'admin'
+				request.user_id = None
 				return func(*args, **kwargs)
 			token = request.headers.get("Auth-Token", "")
 			if check_jwt(token) == False:
