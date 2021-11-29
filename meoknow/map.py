@@ -24,7 +24,7 @@ def add_functions(app):
 	@exception_handler
 	@login_check()
 	def get_markers():
-		markers = CatMarker.query.order_by(CatMarker.upl_time).limit(MARKER_COUNT_MAX)
+		markers = CatMarker.query.order_by(CatMarker.upl_time.desc()).limit(MARKER_COUNT_MAX)
 		data = []
 		for marker in markers:
 			
