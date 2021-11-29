@@ -201,21 +201,24 @@ def add_functions(app):
 				"data": {}
 			})
 
-	@app.route("/admin/get_all_cat_api", methods=["GET"])
+	@app.route("/admin/get_cats_api", methods=["GET"])
 	@exception_handler
 	@admin_login_check
-	def admin_get_all_cat_api():
+	def admin_get_cats_api():
 		try:
-			page = int(request.args.get("page", 1))
+			page = int(request.args.get("page", -1))
 		except:
 			return jsonify({
 				"code": 100,
 				"msg": "invalid page",
 				"data": {}
 			})
-		result = CatInfo.query.paginate(page, 10, False)
+		if page == -1:
+			result = CatInfo.query.all()
+		else:
+			result = CatInfo.query.paginate(page, 10, False).items
 		resp = []
-		for item in result.items:
+		for item in result:
 			attributes = [
 				"cat_id", "name", "gender", "health_status",
 				"desexing_status", "description", "upl_time",
@@ -253,10 +256,10 @@ def add_functions(app):
 		data["parent_avatar"] = get_avatar_by_userid(data["parent_owner"])
 		return data
 
-	@app.route("/admin/get_all_comments_api", methods=["GET"])
+	@app.route("/admin/get_comments_api", methods=["GET"])
 	@exception_handler
 	@admin_login_check
-	def admin_get_all_comments_api():
+	def admin_get_comments_api():
 		page_size = 10
 		try:
 			page = int(request.args.get("page", 1))
@@ -280,7 +283,7 @@ def add_functions(app):
 			}
 		})
 	
-	@app.route("/admin/get_comments_by_cat", methods=["GET"])
+	@app.route("/admin/get_comments_by_cat_api", methods=["GET"])
 	@exception_handler
 	@admin_login_check
 	def admin_get_comments_by_cat():
@@ -308,7 +311,7 @@ def add_functions(app):
 			}
 		})
 	
-	@app.route("/admin/get_comment", methods=["GET"])
+	@app.route("/admin/get_comment_api", methods=["GET"])
 	@exception_handler
 	@admin_login_check
 	def admin_get_comment():
