@@ -8,83 +8,83 @@
     <div class="col-12 col-md-9 mt-5">
         <div class="row">
             <div class="col-12 col-md-3 border">
-            <div style="height: 500px; overflow-y: auto; overflow-x: hidden;" class="text-center">
-                <div class="d-grid mt-3">
-                    <button id="newcat" onclick="switch_empty_cat()" class="btn btn-outline-info">添加喵咪</button>
-                </div>
-                <hr>
-                <div id="cat_container">
-                    
+                <div style="height: 500px; overflow-y: auto; overflow-x: hidden;" class="text-center">
+                    <div class="d-grid mt-3">
+                        <button id="newcat" onclick="switch_empty_cat()" class="btn btn-outline-info">添加喵咪</button>
+                    </div>
+                    <hr>
+                    <div id="cat_container">
+                        
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-md-9 border">
-            <form class="mt-4">
-                <div class="row">
-                    <div class="col-6">
-                        <input type="number" id="cat_id" style="display: none;" value="-1">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="name" class="col-form-label">名称</label>
+            <div class="col-12 col-md-9 border">
+                <form class="mt-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="number" id="cat_id" style="display: none;" value="-1">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="name" class="col-form-label">名称</label>
+                                </div>
+                                <div class="col-auto">
+                                    <input type="text" id="name" required="required" class="form-control">
+                                </div>
                             </div>
-                            <div class="col-auto">
-                                <input type="text" id="name" required="required" class="form-control">
+                            <div class="row my-1 g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="gender" class="col-form-label">性别</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select id="gender" class="form-select">
+                                        <option>公</option>
+                                        <option>母</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row my-1 g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="health_status" class="col-form-label">健康情况</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select id="health_status" class="form-select">
+                                        <option>健康</option>
+                                        <option>生病</option>
+                                        <option>失踪</option>
+                                        <option>送养</option>
+                                        <option>离世</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row my-1 g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="desexing_status" class="col-form-label">绝育情况</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select id="desexing_status" class="form-select">
+                                        <option>绝育</option>
+                                        <option>未绝育</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div class="row my-1 g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="gender" class="col-form-label">性别</label>
-                            </div>
-                            <div class="col-auto">
-                                <select id="gender" class="form-select">
-                                    <option>公</option>
-                                    <option>母</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row my-1 g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="health_status" class="col-form-label">健康情况</label>
-                            </div>
-                            <div class="col-auto">
-                                <select id="health_status" class="form-select">
-                                    <option>健康</option>
-                                    <option>生病</option>
-                                    <option>失踪</option>
-                                    <option>送养</option>
-                                    <option>离世</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row my-1 g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="desexing_status" class="col-form-label">绝育情况</label>
-                            </div>
-                            <div class="col-auto">
-                                <select id="desexing_status" class="form-select">
-                                    <option>绝育</option>
-                                    <option>未绝育</option>
-                                </select>
-                            </div>
+                        <div class="col-6">
+                            <input accept="image/*" type="file" id="imgInp" style="display: none"/>
+                            <img id="catimg" height="200px" src="https://bbs.pku.edu.cn/v2/images/user/portrait-neu.png"/>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <input accept="image/*" type="file" id="imgInp" style="display: none"/>
-                        <img id="catimg" height="200px" src="https://bbs.pku.edu.cn/v2/images/user/portrait-neu.png"/>
+                    <div class="row my-2 justify-content-center">
+                        <div class="col-12">
+                            <label for="description" class="form-label">描述</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="row my-2 justify-content-center">
-                    <div class="col-12">
-                        <label for="description" class="form-label">描述</label>
-                        <textarea class="form-control" id="description" rows="3"></textarea>
-                    </div>
-                  </div>
-                <button type="submit" onclick="return do_upload();" class="btn btn-primary">上传</button>
-                <button type="button" onclick="delete_cat()" class="btn btn-danger">删除</button>
-            </form>
+                    <button type="submit" onclick="return do_upload();" class="btn btn-primary">上传</button>
+                    <button type="button" onclick="delete_cat()" class="btn btn-danger">删除</button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 </div>
 {% endblock %}
 {% block jsscript %}

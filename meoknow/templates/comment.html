@@ -29,6 +29,57 @@
 {% block jsscript %}
 <script>
     var cache = {};
+    var cat_info = [], cat_id;
+    function parseUrl(url) {
+        return "//" + url;
+    }
+    async function render_cat_page(page) {
+        var resp = await api_get_comments_by_cat(page, cat_id);
+        var page_cnt = resp.maxpage;
+        var comments = resp.resp;
+        var main = $("#cat-main");
+        $(main).empty();
+        for (var i = 0; i < comments.length; i++) {
+            var comment = render_comment(comments[i]);
+            $(main).append(comment);
+        }
+        render_navbar_master(page_cnt, page, (newpage) => {
+            render_all_page(newpage)
+        });
+    }
+    function switch_cat(idx) {
+        console.log(idx);
+        cat_id = cat_info[idx].cat_id;
+        $(".cat").each(function() {
+            if ($(this).attr("idx") == idx) {
+                $(this).addClass("selected-cat");
+            } else {
+                $(this).removeClass("selected-cat");
+            }
+        });
+        render_cat_page(1);
+    }
+    function render_cat_list(cats) {
+        cat_info = cats;
+        $("#cat_container").empty();
+        for (var i = 0; i < cats.length; i++) {
+            console.log(cats[i].img_url);
+            var root = $("<div></div>").css("cursor", "pointer").addClass("row my-2 py-1 cat").attr("idx", i);
+            var img = $("<div></div>").addClass("col-4").append(
+                $("<img></img>")
+                    .addClass("img-fluid noselect")
+                    .attr("src", parseUrl(cats[i].img_url)) // TODO: hard coded scheme
+            );
+            var name = $("<div></div>").addClass("col-8").append(
+                $("<p></p>").addClass("noselect").text(cats[i].name)
+            );
+            root.append(img).append(name);
+            $(root).click(function() {
+                switch_cat($(this).attr("idx"));
+            });
+            $("#cat_container").append(root);
+        }
+    }
     function render_navbar(maxpage, curpage, onclick) {
         if (maxpage == 0) {
             $("#navbar").empty();
@@ -64,6 +115,13 @@
             render_navbar(maxpage, idx, onclick);
         }
         render_navbar(maxpage, curpage, onclick);
+    }
+    function api_get_all_cat() {
+        return new Promise((res) => {
+            $.get("{{ url_for('admin_get_all_cat_api') }}").then((e) => {
+                res(e.data.resp);
+            })
+        })
     }
     function api_get_comments_by_cat(page, cat_id) {
         var url = '{{ url_for("admin_get_comments_by_cat") }}?page=' + page;
@@ -252,14 +310,32 @@
         $("#cat_link").removeClass("active");
         render_all_page(1);
     }
-    function render_cat() {
+    async function render_cat() {
         $("#cat_link").addClass("active");
         $("#all_link").removeClass("active");
-        $("#main").text("Under Development");
+        $("#main").empty();
+        // $("#main").text("Under Development");
+        var left = $("<div></div>")
+            .addClass("col-12 col-md-3 border")
+            .append(
+                $("<div></div>")
+                    .addClass("text-center")
+                    .css("height", "500px")
+                    .css("overflow-y", "auto")
+                    .css("overflow-x", "hidden")
+                    .append(
+                        $("<div></div>").attr("id", "cat_container")
+                    )
+            );
+        var right = $("<div></div>")
+            .addClass("col-12 col-md-9 border")
+            .append(
+                $("<div></div>").attr("id", "cat-main")
+            );
+        $("#main").append(left);
+        $("#main").append(right);
+        render_cat_list(await api_get_all_cat());
         render_navbar_master(0, 0, null);
-    }
-    function render_specific_cat() {
-
     }
     $(() => {
         render_all();
