@@ -39,11 +39,13 @@ def create_app(test_config=None):
         from . import auth
         from . import comment
         from . import admin
+        from . import map
 
         cat.add_functions(app)
         auth.add_functions(app)
         comment.add_functions(app)
         admin.add_functions(app)
+        map.add_functions(app)
         db.create_all()
 
     # a simple page that says hello

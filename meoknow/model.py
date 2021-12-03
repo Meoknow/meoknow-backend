@@ -73,3 +73,13 @@ class IdentifyHistory(db.Model):
 
 	def __repr__(self):
 		return '<url %r>' % self.img_url
+
+class CatMarker(db.Model):
+	__table_args__ = {"extend_existing": False}
+	id = db.Column(db.Integer, primary_key=True)
+	latitude = db.Column(db.String(80), nullable=False)
+	longitude = db.Column(db.String(80), nullable=False)
+	user_id = db.Column(db.String(80))
+	cat_id = db.Column(db.Integer)
+	upl_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+	img_url = db.Column(db.String(120))
