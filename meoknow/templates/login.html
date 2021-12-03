@@ -31,6 +31,7 @@
 {% block jsscript %}
 <script>
     $(() => {
+        var nonce = "{{ nonce }}";
         $("#login_form").on("submit", () => {
             $("#feedback").css("display", "none");
             $.ajax({
@@ -38,7 +39,7 @@
                 url: '{{ url_for("admin_login_api") }}',
                 data: JSON.stringify({
                     username: $("#usr").val(),
-                    password: $("#pwd").val(),
+                    password: sha256($("#pwd").val() + nonce),
                 }),
                 success(e) {
                     if (e.code != 0) {

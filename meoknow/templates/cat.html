@@ -8,90 +8,89 @@
     <div class="col-12 col-md-9 mt-5">
         <div class="row">
             <div class="col-12 col-md-3 border">
-            <div style="height: 500px; overflow-y: auto; overflow-x: hidden;" class="text-center">
-                <div class="d-grid mt-3">
-                    <button id="newcat" onclick="switch_empty_cat()" class="btn btn-outline-info">添加喵咪</button>
-                </div>
-                <hr>
-                <div id="cat_container">
-                    
+                <div style="height: 500px; overflow-y: auto; overflow-x: hidden;" class="text-center">
+                    <div class="d-grid mt-3">
+                        <button id="newcat" onclick="switch_empty_cat()" class="btn btn-outline-info">添加喵咪</button>
+                    </div>
+                    <hr>
+                    <div id="cat_container">
+                        
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-md-9 border">
-            <form class="mt-4">
-                <div class="row">
-                    <div class="col-6">
-                        <input type="number" id="cat_id" style="display: none;" value="-1">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="name" class="col-form-label">名称</label>
+            <div class="col-12 col-md-9 border">
+                <form class="mt-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="number" id="cat_id" style="display: none;" value="-1">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="name" class="col-form-label">名称</label>
+                                </div>
+                                <div class="col-auto">
+                                    <input type="text" id="name" required="required" class="form-control">
+                                </div>
                             </div>
-                            <div class="col-auto">
-                                <input type="text" id="name" required="required" class="form-control">
+                            <div class="row my-1 g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="gender" class="col-form-label">性别</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select id="gender" class="form-select">
+                                        <option>公</option>
+                                        <option>母</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row my-1 g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="health_status" class="col-form-label">健康情况</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select id="health_status" class="form-select">
+                                        <option>健康</option>
+                                        <option>生病</option>
+                                        <option>失踪</option>
+                                        <option>送养</option>
+                                        <option>离世</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row my-1 g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="desexing_status" class="col-form-label">绝育情况</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select id="desexing_status" class="form-select">
+                                        <option>绝育</option>
+                                        <option>未绝育</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div class="row my-1 g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="gender" class="col-form-label">性别</label>
-                            </div>
-                            <div class="col-auto">
-                                <select id="gender" class="form-select">
-                                    <option>公</option>
-                                    <option>母</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row my-1 g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="health_status" class="col-form-label">健康情况</label>
-                            </div>
-                            <div class="col-auto">
-                                <select id="health_status" class="form-select">
-                                    <option>健康</option>
-                                    <option>生病</option>
-                                    <option>失踪</option>
-                                    <option>送养</option>
-                                    <option>离世</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row my-1 g-3 align-items-center">
-                            <div class="col-auto">
-                                <label for="desexing_status" class="col-form-label">绝育情况</label>
-                            </div>
-                            <div class="col-auto">
-                                <select id="desexing_status" class="form-select">
-                                    <option>绝育</option>
-                                    <option>未绝育</option>
-                                </select>
-                            </div>
+                        <div class="col-6">
+                            <input accept="image/*" type="file" id="imgInp" style="display: none"/>
+                            <img id="catimg" height="200px" src="https://bbs.pku.edu.cn/v2/images/user/portrait-neu.png"/>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <input accept="image/*" type="file" id="imgInp" style="display: none"/>
-                        <img id="catimg" height="200px" src="https://bbs.pku.edu.cn/v2/images/user/portrait-neu.png"/>
+                    <div class="row my-2 justify-content-center">
+                        <div class="col-12">
+                            <label for="description" class="form-label">描述</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="row my-2 justify-content-center">
-                    <div class="col-12">
-                        <label for="description" class="form-label">描述</label>
-                        <textarea class="form-control" id="description" rows="3"></textarea>
-                    </div>
-                  </div>
-                <button type="submit" onclick="return do_upload();" class="btn btn-primary">上传</button>
-                <button type="button" onclick="delete_cat()" class="btn btn-danger">删除</button>
-            </form>
+                    <button type="submit" onclick="return do_upload();" class="btn btn-primary">上传</button>
+                    <button type="button" onclick="delete_cat()" class="btn btn-danger">删除</button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 </div>
 {% endblock %}
 {% block jsscript %}
 <script>
-    var image_changed = false;
-    var cat_info = [];
-    function parseUrl(url) {
+    var image_changed = false, cat_info = [];
+    function parse_url(url) {
         return "//" + url;
     }
     function feedback_success(msg) {
@@ -113,13 +112,9 @@
         });
     }
     function switch_cat(idx) {
-        console.log(idx);
         $(".cat").each(function() {
-            if ($(this).attr("idx") == idx) {
-                $(this).addClass("selected-cat");
-            } else {
-                $(this).removeClass("selected-cat");
-            }
+            if ($(this).attr("idx") == idx) $(this).addClass("selected-cat");
+            else $(this).removeClass("selected-cat");
         });
         switch_data(cat_info[idx]);
     }
@@ -131,7 +126,7 @@
         $("#health_status").val(data.health_status);
         $("#desexing_status").val(data.desexing_status);
         $("#description").val(data.description);
-        $("#catimg").attr("src", parseUrl(data.img_url));
+        $("#catimg").attr("src", parse_url(data.img_url));
         image_changed = false;
     }
     async function update_cat() {
@@ -143,98 +138,66 @@
             desexing_status: $("#desexing_status").val(),
             description: $("#description").val(),
         };
-        if (image_changed)
-            payload.image = await get_image();
-        $.ajax({
-            type: "POST",
-            url: '{{ url_for("admin_update_cat_api") }}',
-            data: JSON.stringify(payload),
-            success(e) {
-                if (e.code == 0) {
-                    feedback_success("更新成功");
-                    main();
-                } else {
-                    feedback_success("更新失败");
-                }
-            },
-            error(e) {
-                
-            },
-            contentType : "application/json",
-        });
+        if (image_changed) {
+            try {
+                payload.image = await get_image();
+            } catch(e) {
+                console.error(e);
+                feedback_warning("无法获取图片");
+                return;
+            }
+        }
+        admin_update_cat_api(payload).then(() => {
+            feedback_success("更新成功");
+            main();
+        }).catch(e => {
+            console.error(e);
+            feedback_warning("更新失败");
+        })
     }
     function delete_cat() {
         var cat_id = parseInt($("#cat_id").val());
         if (cat_id == -1) return feedback_warning("猫咪信息未上传");
-        $.ajax({
-            type: "POST",
-            url: '{{ url_for("admin_delete_cat_api") }}',
-            data: JSON.stringify({
-                cat_id: cat_id
-            }),
-            success(e) {
-                if (e.code == 0) {
-                    feedback_success("删除成功");
-                    main();
-                    switch_empty_cat();
-                } else {
-                    console.warn(e.msg);
-                    feedback_warning("删除失败");
-                }
-            },
-            error(e) {
-                console.warn(e.msg);
-                feedback_warning("未知错误");
-            },
-            contentType : "application/json",
-        });
+        admin_delete_cat_api(cat_id).then(() => {
+            feedback_success("删除成功");
+            main();
+            switch_empty_cat();
+        }).catch(e => {
+            console.error(e);
+            feedback_warning("删除失败");
+        })
     }
     function get_image() {
         return new Promise((res, rej) => {
             var file = document.getElementById("imgInp").files[0];
             if (file) {
                 var reader = new FileReader();
-                reader.onload = function (e) {
-                    console.log(e.target.result);
-                    res(e.target.result);
-                }
-                reader.onerror = function (e) {
-                    rej("G!");
-                }
+                reader.onload = e => res(e.target.result);
+                reader.onerror = () => rej("GG");
                 reader.readAsDataURL(file);
             } else {
                 feedback_warning("请添加图片");
-                rej("G!");
+                rej("GG");
             }
-        })
+        });
     }
     async function new_cat() {
-        console.log("new_cat");
-        $.ajax({
-            type: "POST",
-            url: '{{ url_for("admin_add_cat_api") }}',
-            data: JSON.stringify({
+        get_image().then(image => {
+            admin_add_cat_api({
                 name: $("#name").val(),
                 gender: $("#gender").val(),
                 health_status: $("#health_status").val(),
                 desexing_status: $("#desexing_status").val(),
                 description: $("#description").val(),
-                image: await get_image(),
-            }),
-            success(e) {
-                if (e.code == 0) {
-                    main();
-                    feedback_success("新增成功");
-                } else {
-                    console.log(e.msg);
-                    feedback_warning("新增失败");
-                }
-            },
-            error(e) {
-                feedback_warning("新增失败");
-            },
-            contentType : "application/json",
-        });
+                image: image,
+            }).then(() => {
+                main();
+                feedback_success("新增成功");
+            }).catch(e => {
+                console.error(e);
+                feedback_success("新增失败");
+            });
+        }).catch(e => console.error(e));
     }
     function do_upload() {
         console.log("do_upload");
@@ -242,35 +205,31 @@
         else update_cat();
         return false;
     }
-    function load_page(page) {
-        return new Promise((res) => {
-            $.get("{{ url_for('admin_get_all_cat_api') }}", {page: page}).then((e) => {
-                res(e.data.resp);
-            })
-        })
-    }
-    function load_all() {
-        return new Promise((res) => {
-            $.get("{{ url_for('admin_get_all_cat_api') }}").then((e) => {
-                res(e.data.resp);
-            })
-        })
+    function load_all_cat() {
+        return new Promise((res, rej) => {
+            admin_get_cats_api()
+                .then(data => res(data.resp))
+                .catch(msg => rej(msg));
+        });
     }
     function render_list(cats) {
         cat_info = cats;
         $("#cat_container").empty();
         for (var i = 0; i < cats.length; i++) {
-            console.log(cats[i].img_url);
-            var root = $("<div></div>").css("cursor", "pointer").addClass("row my-2 py-1 cat").attr("idx", i);
+            var root = $("<div></div>");
+            $(root)
+                .css("cursor", "pointer")
+                .addClass("row my-2 py-1 cat")
+                .attr("idx", i);
             var img = $("<div></div>").addClass("col-4").append(
                 $("<img></img>")
                     .addClass("img-fluid noselect")
-                    .attr("src", parseUrl(cats[i].img_url)) // TODO: hard coded scheme
+                    .attr("src", parse_url(cats[i].img_url))
             );
             var name = $("<div></div>").addClass("col-8").append(
                 $("<p></p>").addClass("noselect").text(cats[i].name)
             );
-            root.append(img).append(name);
+            $(root).append(img).append(name);
             $(root).click(function() {
                 switch_cat($(this).attr("idx"));
             });
@@ -278,14 +237,19 @@
         }
     }
     async function main() {
-        render_list(await load_all());
+        load_all_cat()
+            .then(cats => render_list(cats))
+            .catch(e => {
+                console.error(e);
+                feedback_warning("获取猫咪信息失败");
+            });
     }
     $(() => {
         $("#catimg").click(() => {
             $("#imgInp").click();
         });
         imgInp.onchange = evt => {
-            const [file] = imgInp.files
+            const [file] = imgInp.files;
             if (file) {
                 image_changed = true;
                 catimg.src = URL.createObjectURL(file);

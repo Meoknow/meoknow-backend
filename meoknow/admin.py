@@ -13,12 +13,15 @@ import os
 import functools
 import uuid
 import random
+import string
+import hashlib
 from PIL import Image
 
 
 def add_functions(app):
 	ADMIN_USERNAME = app.config.get("ADMIN_USERNAME", "dev")
 	ADMIN_PASSWORD = app.config.get("ADMIN_PASSWORD", "dev")
+	ADMIN_LOGINNONCE = ''.join(random.choices(string.ascii_uppercase, k=16))
 	def upload_photo(img_64, owner):
 		try:
 			file_fmt = re.findall("^data:image/(.+?);base64,", img_64)
@@ -60,7 +63,10 @@ def add_functions(app):
 		data = request.get_json()
 		username = data.get("username", "")
 		password = data.get("password", "")
-		if username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
+		sha256pwd = hashlib.sha256(
+			(ADMIN_PASSWORD + ADMIN_LOGINNONCE).encode("utf-8")
+		).hexdigest().lower()
+		if username != ADMIN_USERNAME or password.lower() != sha256pwd:
 			return jsonify({
 				"code": 1,
 				"msg": "invalid username or password",
@@ -195,21 +201,24 @@ def add_functions(app):
 				"data": {}
 			})
 
-	@app.route("/admin/get_all_cat_api", methods=["GET"])
+	@app.route("/admin/get_cats_api", methods=["GET"])
 	@exception_handler
 	@admin_login_check
-	def admin_get_all_cat_api():
+	def admin_get_cats_api():
 		try:
-			page = int(request.args.get("page", 1))
+			page = int(request.args.get("page", -1))
 		except:
 			return jsonify({
 				"code": 100,
 				"msg": "invalid page",
 				"data": {}
 			})
-		result = CatInfo.query.paginate(page, 10, False)
+		if page == -1:
+			result = CatInfo.query.all()
+		else:
+			result = CatInfo.query.paginate(page, 10, False).items
 		resp = []
-		for item in result.items:
+		for item in result:
 			attributes = [
 				"cat_id", "name", "gender", "health_status",
 				"desexing_status", "description", "upl_time",
@@ -247,10 +256,10 @@ def add_functions(app):
 		data["parent_avatar"] = get_avatar_by_userid(data["parent_owner"])
 		return data
 
-	@app.route("/admin/get_all_comments_api", methods=["GET"])
+	@app.route("/admin/get_comments_api", methods=["GET"])
 	@exception_handler
 	@admin_login_check
-	def admin_get_all_comments_api():
+	def admin_get_comments_api():
 		page_size = 10
 		try:
 			page = int(request.args.get("page", 1))
@@ -274,7 +283,7 @@ def add_functions(app):
 			}
 		})
 	
-	@app.route("/admin/get_comments_by_cat", methods=["GET"])
+	@app.route("/admin/get_comments_by_cat_api", methods=["GET"])
 	@exception_handler
 	@admin_login_check
 	def admin_get_comments_by_cat():
@@ -302,7 +311,7 @@ def add_functions(app):
 			}
 		})
 	
-	@app.route("/admin/get_comment", methods=["GET"])
+	@app.route("/admin/get_comment_api", methods=["GET"])
 	@exception_handler
 	@admin_login_check
 	def admin_get_comment():
@@ -373,7 +382,7 @@ def add_functions(app):
 	def admin_login():
 		if session.get("verified", False) == True:
 			return redirect(url_for("admin_index"))
-		return render_template("login.html")
+		return render_template("login.html", nonce=ADMIN_LOGINNONCE)
 	
 	@app.route("/admin/")
 	def admin_index():

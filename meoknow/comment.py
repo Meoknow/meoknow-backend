@@ -136,7 +136,7 @@ def add_functions(app):
 		result = Comment.query.filter_by(
 			cat_id=cat_id,
 			is_hidden=False
-		).paginate(page, page_size, False)
+		).order_by(Comment.create_time.desc()).paginate(page, page_size, False)
 		total = result.total
 		items = result.items
 
@@ -157,7 +157,10 @@ def add_functions(app):
 		return jsonify({
 			"code": 0,
 			"msg": "",
-			"data": resp
+			"data": {
+				"total": total,
+				"comments": resp
+			}
 		}), 200
 
 	
