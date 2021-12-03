@@ -1,4 +1,4 @@
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, session
 from .util import exception_handler, debug_only
 from .model import User
 from meoknow import db
@@ -49,6 +49,9 @@ def login_check(admin=False):
 			# temporarily disabling login_check
 			# request.user_id = 'admin'
 			# return func(*args, **kwargs)
+			if session.get("verified", False):
+				request.user_id = "admin"
+				return func(*args, **kwargs)
 			token = request.headers.get("Auth-Token", "")
 			if check_jwt(token) == False:
 				return jsonify({

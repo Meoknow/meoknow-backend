@@ -29,150 +29,114 @@
 {% block jsscript %}
 <script>
     var cache = {};
-    function render_navbar(maxpage, curpage, onclick) {
-        if (maxpage == 0) {
-            $("#navbar").empty();
-            return;
+    var cat_info = [], cat_id;
+    function feedback_success(msg) {
+        alert(msg);
+    }
+    function feedback_warning(msg) {
+        alert(msg);
+    }
+    function parse_url(url) {
+        return "//" + url;
+    }
+    function render_cat_page(page) {
+        admin_get_comments_by_cat_api(cat_id, page).then(resp => {
+            var page_cnt = resp.maxpage;
+            var comments = resp.resp;
+            var main = $("#cat-main");
+            $(main).empty();
+            for (var i = 0; i < comments.length; i++) {
+                var comment = render_comment(comments[i]);
+                $(main).append(comment);
+            }
+            render_navbar_master(page_cnt, page, (newpage) => {
+                render_all_page(newpage)
+            });
+        }).catch(e => {
+            console.error(e);
+            feedback_warning("渲染节点失败");
+        })
+    }
+    function switch_cat(idx) {
+        cat_id = cat_info[idx].cat_id;
+        $(".cat").each(function() {
+            if ($(this).attr("idx") == idx) {
+                $(this).addClass("selected-cat");
+            } else {
+                $(this).removeClass("selected-cat");
+            }
+        });
+        render_cat_page(1);
+    }
+    function render_cat_list(cats) {
+        cat_info = cats;
+        $("#cat_container").empty();
+        for (var i = 0; i < cats.length; i++) {
+            var root = $("<div></div>").css("cursor", "pointer").addClass("row my-2 py-1 cat").attr("idx", i);
+            var img = $("<div></div>").addClass("col-4").append(
+                $("<img></img>")
+                    .addClass("img-fluid noselect")
+                    .attr("src", parse_url(cats[i].img_url))
+            );
+            var name = $("<div></div>").addClass("col-8").append(
+                $("<p></p>").addClass("noselect").text(cats[i].name)
+            );
+            root.append(img).append(name);
+            $(root).click(function() {
+                switch_cat($(this).attr("idx"));
+            });
+            $("#cat_container").append(root);
         }
-        var ul = $("<ul></ul>").addClass("pagination justify-content-center");
-        for (var i = 0; i <= maxpage + 1; i++) {
-            var content = i.toString(), idx = i, enable, iscurrent;
-            iscurrent = i == curpage;
-            if (i == 0) content = "prev", idx = curpage - 1;
-            if (i == maxpage + 1) content = "next", idx = curpage + 1;
-            enable = 1 <= idx && idx <= maxpage;
-            var li = $("<li></li>").addClass("page-item");
-            if (iscurrent) li.addClass("active");
-            if (!enable) li.addClass("disabled");
-            var a = $("<a></a>")
-                .addClass("page-link")
-                .attr("href", "#")
-                .attr("idx", idx)
-                .text(content)
-                .click(function() {
-                    onclick(parseInt($(this).attr("idx")));
-                });
-            $(li).append(a);
-            $(ul).append(li);
-        }
-        $("#navbar").empty();
-        $("#navbar").append(ul);
     }
     function render_navbar_master(maxpage, curpage, callback) {
+        function render_navbar(maxpage, curpage, onclick) {
+            if (maxpage == 0) {
+                $("#navbar").empty();
+                return;
+            }
+            var ul = $("<ul></ul>").addClass("pagination justify-content-center");
+            for (var i = 0; i <= maxpage + 1; i++) {
+                var content = i.toString(), idx = i, enable, iscurrent;
+                iscurrent = i == curpage;
+                if (i == 0) content = "prev", idx = curpage - 1;
+                if (i == maxpage + 1) content = "next", idx = curpage + 1;
+                enable = 1 <= idx && idx <= maxpage;
+                var li = $("<li></li>").addClass("page-item");
+                if (iscurrent) li.addClass("active");
+                if (!enable) li.addClass("disabled");
+                var a = $("<a></a>")
+                    .addClass("page-link")
+                    .attr("href", "#")
+                    .attr("idx", idx)
+                    .text(content)
+                    .click(function() {
+                        onclick(parseInt($(this).attr("idx")));
+                    });
+                $(li).append(a);
+                $(ul).append(li);
+            }
+            $("#navbar").empty();
+            $("#navbar").append(ul);
+        }
         function onclick(idx) {
             callback(idx);
             render_navbar(maxpage, idx, onclick);
         }
         render_navbar(maxpage, curpage, onclick);
     }
-    function api_get_comments_by_cat(page, cat_id) {
-        var url = '{{ url_for("admin_get_comments_by_cat") }}?page=' + page;
-        url += "&cat_id=" + cat_id;
-        return new Promise((res, rej) => {
-            $.ajax({
-                type: "GET",
-                url: url,
-                success(e) {
-                    if (e.code == 0) {
-                        res(e.data);
-                    } else {
-                        rej(e.msg);
-                    }
-                },
-                error(e) {
-                    rej(e);
+    function rerender_by_commentid(comment_id) {
+        admin_get_comment_api(comment_id).then(data => {
+            var comment = data.comment;
+            var node = render_comment(comment);
+            $(".comment-root").each(function(idx, ele) {
+                if (parseInt($(ele).attr("comment_id")) == comment_id) {
+                    $(ele).empty();
+                    $(ele).append(node.children()[0]);
                 }
-            })
-        })
-    }
-    function api_get_comments(page) {
-        return new Promise((res, rej) => {
-            $.ajax({
-                type: "GET",
-                url: '{{ url_for("admin_get_all_comments_api") }}?page=' + page,
-                success(e) {
-                    if (e.code == 0) {
-                        res(e.data);
-                    } else {
-                        rej(e.msg);
-                    }
-                },
-                error(e) {
-                    rej(e)
-                }
-            })
-        });
-    }
-    function api_get_comment(comment_id) {
-        return new Promise((res, rej) => {
-            $.ajax({
-                type: "GET",
-                url: '{{ url_for("admin_get_comment") }}?comment_id=' + comment_id,
-                success(e) {
-                    if (e.code == 0) {
-                        res(e.data.comment);
-                    } else {
-                        rej(e.msg);
-                    }
-                },
-                error(e) {
-                    rej(e);
-                }
-            })
-        });
-    }
-    function api_hide_comment(comment_id) {
-        return new Promise((res, rej) => {
-            $.ajax({
-                type: "POST",
-                url: '{{ url_for("admin_hide_comment_api") }}',
-                data: JSON.stringify({
-                    comment_id: comment_id
-                }),
-                success(e) {
-                    if (e.code == 0) {
-                        res("success");
-                    } else {
-                        rej(e.msg);
-                    }
-                },
-                error(e) {
-                    rej(e);
-                },
-                contentType : "application/json",
             });
-        });
-    }
-    function api_show_comment(comment_id) {
-        return new Promise((res, rej) => {
-            $.ajax({
-                type: "POST",
-                url: '{{ url_for("admin_show_comment_api") }}',
-                data: JSON.stringify({
-                    comment_id: comment_id
-                }),
-                success(e) {
-                    if (e.code == 0) {
-                        res("success");
-                    } else {
-                        rej(e.msg);
-                    }
-                },
-                error(e) {
-                    rej(e);
-                },
-                contentType : "application/json",
-            });
-        });
-    }
-    async function rerender_by_commentid(comment_id) {
-        var comment = await api_get_comment(comment_id);
-        var node = render_comment(comment);
-        $(".comment-root").each(function(idx, ele) {
-            if (parseInt($(ele).attr("comment_id")) == comment_id) {
-                $(ele).empty();
-                $(ele).append(node.children()[0]);
-            }
+        }).catch(e => {
+            console.error(e);
+            feedback_warning("渲染节点失败");
         });
     }
     function render_comment(comment) {
@@ -208,12 +172,17 @@
             .attr("comment_id", comment.comment_id)
             .click(async function() {
                 var comment_id = parseInt($(this).attr("comment_id"));
-                if ($(this).text() == "恢复") {
-                    await api_show_comment(comment_id);
-                } else {
-                    await api_hide_comment(comment_id);
+                try {
+                    if ($(this).text() == "恢复") {
+                        await admin_show_comment_api(comment_id);
+                    } else {
+                        await admin_hide_comment_api(comment_id);
+                    }
+                    rerender_by_commentid(comment_id);
+                } catch(e) {
+                    console.error(e);
+                    feedback_warning("操作失败");
                 }
-                rerender_by_commentid(comment_id);
             })
             .text(comment.is_hidden ? "恢复" : "隐藏");
         var extra_div = $("<div></div>").addClass();
@@ -233,21 +202,25 @@
         $(root).append(container);
         return root;
     }
-    async function render_all_page(page) {
-        var resp = await api_get_comments(page);
-        var page_cnt = resp.maxpage;
-        var comments = resp.resp;
-        var main = $("#main");
-        $(main).empty();
-        for (var i = 0; i < comments.length; i++) {
-            var comment = render_comment(comments[i]);
-            $(main).append(comment);
-        }
-        render_navbar_master(page_cnt, page, (newpage) => {
-            render_all_page(newpage)
-        });
+    function render_all_page(page) {
+        admin_get_comments_api().then(resp => {
+            var page_cnt = resp.maxpage;
+            var comments = resp.resp;
+            var main = $("#main");
+            $(main).empty();
+            for (var i = 0; i < comments.length; i++) {
+                var comment = render_comment(comments[i]);
+                $(main).append(comment);
+            }
+            render_navbar_master(page_cnt, page, (newpage) => {
+                render_all_page(newpage)
+            });
+        }).catch(e => {
+            console.error(e);
+            feedback_warning("渲染节点失败");
+        })
     }
-    async function render_all() {
+    function render_all() {
         $("#all_link").addClass("active");
         $("#cat_link").removeClass("active");
         render_all_page(1);
@@ -255,11 +228,32 @@
     function render_cat() {
         $("#cat_link").addClass("active");
         $("#all_link").removeClass("active");
-        $("#main").text("Under Development");
+        $("#main").empty();
+        var left = $("<div></div>")
+            .addClass("col-12 col-md-3 border")
+            .append(
+                $("<div></div>")
+                    .addClass("text-center")
+                    .css("height", "500px")
+                    .css("overflow-y", "auto")
+                    .css("overflow-x", "hidden")
+                    .append(
+                        $("<div></div>").attr("id", "cat_container")
+                    )
+            );
+        var right = $("<div></div>")
+            .addClass("col-12 col-md-9 border")
+            .append(
+                $("<div></div>").attr("id", "cat-main")
+            );
+        $("#main").append(left);
+        $("#main").append(right);
         render_navbar_master(0, 0, null);
-    }
-    function render_specific_cat() {
-
+        admin_get_cats_api()
+            .then(data => render_cat_list(data.resp))
+            .catch(() => {
+                feedback_warning("加载失败");
+            })
     }
     $(() => {
         render_all();
