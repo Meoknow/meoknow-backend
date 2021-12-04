@@ -12,8 +12,6 @@ def create_app(test_config=None):
         SQLALCHEMY_DATABASE_URI = "sqlite:///"+os.path.join(app.instance_path, "meoknow.db"),
         SQLALCHEMY_TRACK_MODIFICATIONS = False 
     )
-    if app.config['ENV'] == 'production': # for production, use another configurations
-        app.config.from_envvar("CONFIG_PATH")
     db.init_app(app)
 
     if test_config is None:
