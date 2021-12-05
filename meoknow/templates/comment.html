@@ -50,7 +50,7 @@
                 $(main).append(comment);
             }
             render_navbar_master(page_cnt, page, (newpage) => {
-                render_all_page(newpage)
+                render_cat_page(newpage)
             });
         }).catch(e => {
             console.error(e);
@@ -203,7 +203,7 @@
         return root;
     }
     function render_all_page(page) {
-        admin_get_comments_api().then(resp => {
+        admin_get_comments_api(page).then(resp => {
             var page_cnt = resp.maxpage;
             var comments = resp.resp;
             var main = $("#main");
