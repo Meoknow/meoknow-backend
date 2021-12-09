@@ -277,7 +277,7 @@ def add_functions(app):
 
 	@app.route('/photos/<photo_name>', methods = ['GET'])
 	@exception_handler
-	@login_check()
+	# @login_check()
 	def get_image(photo_name):
 		photo = Photo.query.filter_by(name=photo_name).first()
 		if photo == None:
