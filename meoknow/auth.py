@@ -169,7 +169,8 @@ def add_functions(app):
 			"code": 0,
 			"msg": "",
 			"data": {
-				"token": gen_jwt(openid, request.args.get("admin", False) != False)
+				"token": gen_jwt(openid, request.args.get("admin", False) != False),
+				"user_id": openid
 			}
 		})
 

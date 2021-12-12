@@ -20,7 +20,7 @@ def exception_handler(func):
 def debug_only(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if not current_app.debug:
+        if not current_app.debug and not current_app.testing:
             return jsonify({
                 "code": -1,
                 "msg": "debug function is disabled in production mode.",

@@ -41,12 +41,10 @@ def add_functions(app):
 			byte_data = base64.b64decode(img_64)
 			img = Image.open(BytesIO(byte_data))
 			img_name = "%s.%s" % (str(uuid.uuid4()).replace("-", ""), file_fmt[0])
-			print(img_name)
 			img_url = os.path.join(app.instance_path, "images", img_name)
 			img.save(img_url)
 			return img_name
 		except Exception as e:
-			print(e)
 			return None
 	
 	@app.route("/cats/<int:cat_id>/comments/", methods=["POST"])
@@ -62,6 +60,13 @@ def add_functions(app):
 		
 		rdata = request.get_json()
 
+		if rdata is None:
+			return jsonify({
+				"code": 101,
+				"msg": "Invalid Content.",
+				"data": {}
+			}), 400
+
 		content = rdata.get("content", "")
 		images = rdata.get("images", [])
 		paths = []
@@ -74,7 +79,7 @@ def add_functions(app):
 			}), 400
 		
 		try:
-			if len(images) > 9:
+			if len(images) > 9 or not isinstance(images, list):
 				raise ValueError("Too Many Images.")
 			for img_64 in images:
 				path = save_img(img_64)
@@ -90,12 +95,8 @@ def add_functions(app):
 			}), 400
 
 		comment = Comment(
-			is_reply=False,
-			reply_id=0,
-			main_comment_id=0,
 			like=0,
 			owner=request.user_id,
-			parent_owner=request.user_id,
 			cat_id=cat_id,
 			content=content,
 			images_path=json.dumps(paths),
@@ -118,6 +119,8 @@ def add_functions(app):
 		try:
 			page = int(rdata.get("page", 1))
 			page_size = int(rdata.get("page_size", 20))
+			if page <= 0 or page_size <= 0:
+				raise ValueError("Invalid page_size or page.")
 		except Exception as e:
 			return jsonify({
 				"code": 101,
@@ -162,74 +165,12 @@ def add_functions(app):
 				"comments": resp
 			}
 		}), 200
-
-	
-	@app.route("/comments/", methods=["POST"])
-	@exception_handler
-	@login_check()
-	def do_reply():
-		rdata = request.get_json()
-
-		content = rdata.get("content", "")
-		comment_id = rdata.get("comment_id", -1)
-
-		if content == "" or not isinstance(content, str):
-			return jsonify({
-				"code": 101,
-				"msg": "Invalid Content.",
-				"data": {}
-			}), 400
-		
-		parent_comment = Comment.query.filter_by(comment_id=comment_id).one_or_none()
-
-		if not all[
-			isinstance(comment_id, int),
-			parent_comment != None,
-			parent_comment.is_hidden != False
-		]:
-			return jsonify({
-				"code": 100,
-				"msg": "Invalid comment_id.",
-				"data": {}
-			}), 400
-		
-		comment = Comment(
-			main_comment_id=parent_comment.main_comment_id or parent_comment.comment_id,
-			is_reply=True,
-			reply_id=comment_id,
-			like=0,
-			owner=request.user_id,
-			parent_owner=parent_comment.owner,
-			cat_id=parent_comment.cat_id,
-			content=content,
-			images_path="[]",
-			is_hidden=False
-		)
-
-		db.session.add(comment_id)
-		db.session.commit()
-
-		return jsonify({
-			"code": 0,
-			"msg": "",
-			"data": {}
-		}), 200
-
 	
 	@app.route("/comments/<int:comment_id>", methods=["GET"])
 	@exception_handler
 	@login_check()
 	def get_comment(comment_id):
 		rdata = request.args
-		try:
-			page = int(rdata.get("page", 1))
-			page_size = int(rdata.get("page_size", 20))
-		except Exception as e:
-			return jsonify({
-				"code": 101,
-				"msg": "Invalid page_size or page.",
-				"data": {}
-			}), 400
 		
 		comment = Comment.query.filter_by(
 			comment_id=comment_id,
@@ -242,40 +183,14 @@ def add_functions(app):
 				"data": {}
 			}), 400
 		
-		replies = []
-		result = Comment.query.filter_by(
-			main_comment_id=comment_id,
-			is_hidden=False
-		).paginate(page, page_size, False)
-
-		for item in result.items:
-			prefix = ""
-			if item.reply_id != item.main_comment_id: # A reply to another reply
-				pre_comment = Comment.query.filter_by(comment_id=item.reply_id).one_or_none()
-				prefix = "@%s " % get_nickname_by_userid(pre_comment.owner)
-			replies.append({
-				"reply_id": item.reply_id,
-				"comment_id": item.comment_id,
-				"content": prefix + item.content,
-				"time": format_time(item.create_time),
-				"timestamp": format_timestamp(item.create_time),
-				"username": get_nickname_by_userid(item.owner),
-				"avatar": get_avatar_by_userid(item.owner),
-				"is_liked": is_liked_by_current_user(item.comment_id),
-				"like": item.like
-			})
-
 		resp = {
 			"cat_id": comment.cat_id,
-			"main_comment_id": comment.main_comment_id or comment.comment_id,
-			"is_reply": comment.is_reply,
 			"is_liked": is_liked_by_current_user(comment.comment_id),
 			"like": comment.like,
 			"time": format_time(comment.create_time),
 			"timestamp": format_timestamp(comment.create_time),
 			"username": get_nickname_by_userid(comment.owner),
-			"avatar": get_avatar_by_userid(comment.owner),
-			"replies": replies
+			"avatar": get_avatar_by_userid(comment.owner)
 		}
 
 		return jsonify({
@@ -295,10 +210,10 @@ def add_functions(app):
 				"msg": "Invalid parameter: comment_id.",
 				"data": {}
 			}), 400
-		comment_id.is_hidden = True
+		comment.is_hidden = True
 		db.session.commit()
 		return jsonify({
-			"code": "0",
+			"code": 0,
 			"msg": "",
 			"data": {}
 		}), 200
@@ -318,9 +233,9 @@ def add_functions(app):
 				"data": {}
 			}), 400
 
-		record = Comment.query.filter_by(
+		record = Comment_Like.query.filter_by(
 			comment_id=comment_id,
-			owner=request.user_id
+			user_id=request.user_id
 		).one_or_none()
 
 		if record == None:
@@ -336,7 +251,9 @@ def add_functions(app):
 		return jsonify({
 			"code": 0,
 			"msg": "",
-			"data": {}
+			"data": {
+				"like": comment.like
+			}
 		}), 200
 	
 	@app.route("/comments/<int:comment_id>/like", methods=["DELETE"])
@@ -367,7 +284,9 @@ def add_functions(app):
 		return jsonify({
 			"code": 0,
 			"msg": "",
-			"data": {}
+			"data": {
+				"like": comment.like
+			}
 		}), 200
 	
 	@app.route("/status/likes", methods=["GET"])
@@ -378,6 +297,8 @@ def add_functions(app):
 		try:
 			page = int(rdata.get("page", 1))
 			page_size = int(rdata.get("page_size", 20))
+			if page <= 0 or page_size <= 0:
+				raise ValueError("Invalid page_size or page.")
 		except Exception as e:
 			return jsonify({
 				"code": 100,
@@ -409,49 +330,8 @@ def add_functions(app):
 			"data": resp
 		}), 200
 
-	@app.route("/status/mentions", methods=["GET"])
-	@exception_handler
-	@login_check()
-	def recent_metioned():
-		rdata = request.args
-		try:
-			page = int(rdata.get("page", 1))
-			page_size = int(rdata.get("page_size", 20))
-		except Exception as e:
-			return jsonify({
-				"code": 100,
-				"msg": "Invalid page_size or page.",
-				"data": {}
-			}), 400
-		
-		result = Comment.query.filter_by(
-			parent_owner=request.user_id,
-			is_hidden=False
-		).order_by(Comment.create_time.desc()).paginate(page, page_size)
-		total = result.total
-		mentions = []
-		for item in result.items:
-			mentions.append({
-				"username": get_nickname_by_userid(item.owner),
-				"avatar": get_avatar_by_userid(item.owner),
-				"time": format_time(item.create_time),
-				"timestamp": format_timestamp(item.create_time),
-				"comment_id": item.comment_id
-			})
-		
-		resp = {
-			"count": total,
-			"mentions": mentions
-		}
-
-		return jsonify({
-			"code": 0,
-			"msg": "",
-			"data": resp
-		})
-	
 	@app.route("/comment_photo/<string:photo_name>", methods=["GET"])
-	def send_photo(photo_name):
+	def get_photo(photo_name):
 		# TODO: check ../
 		img_url = os.path.join(app.instance_path, "images", photo_name)
 		if os.path.exists(img_url):
