@@ -6,7 +6,11 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 def create_app(test_config=None):
     # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
+    if test_config is None or "instance_path" not in test_config:
+        app = Flask(__name__, instance_relative_config=True)
+    else:
+        app = Flask(__name__, instance_path=test_config["instance_path"], instance_relative_config=True)
+        
     app.config.from_mapping(
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI = "sqlite:///"+os.path.join(app.instance_path, "meoknow.db"),
