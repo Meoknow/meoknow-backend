@@ -91,3 +91,6 @@ flask run
 
 *   本地查看 [http://127.0.0.1:5000/hello]()，前端可以往[localhost:5000/]()发送数据
 
+## 单元测试
+
+设置 `PYTHONPATH` 为 `meoknow-backend` 所在目录，用 `python` 直接运行测试脚本即可
