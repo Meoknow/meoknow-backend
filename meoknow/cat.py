@@ -189,7 +189,11 @@ def add_functions(app):
 		if img_64 == None and img_url != None:
 			pass
 		elif img_64 != None and img_url == None:
-			img_url = PHOTO_PREFIX+upload_photo(img_64, "public")
+			img_url = upload_photo(img_64, "public")
+			if img_url != None:
+				img_url = PHOTO_PREFIX + img_url
+			else:
+				return ERROR_INVALID_DATA
 		else:
 			return ERROR_INVALID_DATA
 
@@ -239,7 +243,11 @@ def add_functions(app):
 		if img_64 == None:
 			pass
 		elif img_64 != None and img_url == None:
-			img_url = PHOTO_PREFIX+upload_photo(img_64, "public")
+			img_url = upload_photo(img_64, "public")
+			if img_url != None:
+				img_url = PHOTO_PREFIX + img_url
+			else:
+				return ERROR_INVALID_DATA
 		else:
 			return ERROR_INVALID_DATA
 				

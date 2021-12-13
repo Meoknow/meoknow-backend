@@ -5,7 +5,7 @@ import unittest, json
 from meoknow import create_app, db
 from meoknow.model import CatInfo, Comment
 
-TEST_PERF_ITER = 10
+TEST_PERF_ITER = 1
 TEST_STRESS_NUM = 10
 
 class TestCats(unittest.TestCase):
@@ -74,21 +74,124 @@ class TestCats(unittest.TestCase):
             "data": {}
         })
 
-    def test_get_all_cats(self):
-        correct_headers = {
+    def test_get_cats(self):
+        correct_header = {
             "Auth-Token": self.get_token("Alice", is_admin=False)[0]
         }
+
         resp = self.client.get(
             "/cats/",
-            headers=correct_headers
+            headers=correct_header
         )
-        print(resp)
+        resp_str = str(json.loads(resp.data))
+        # print(resp_str)
+        self.assertIn("麈尾", resp_str)
+
+        # correct cat number
+        resp = self.client.get(
+            "/cats/1",
+            headers=correct_header
+        )
+        resp_str = str(json.loads(resp.data))
+        self.assertIn("杜若", resp_str)
+
+        # wrong cat number
+        resp = self.client.get(
+            "/cats/100",
+            headers=correct_header
+        )
+        resp_str = str(json.loads(resp.data))
+        self.assertIn("Invalid", resp_str)
+
+    def test_put_cats(self):
+        correct_header = {
+            "Auth-Token": self.get_token("Alice", is_admin=True)[0]
+        }
+        wrong_header = {
+            "Auth-Token": self.get_token("Bob", is_admin=False)[0]
+        }
+
+        correct_payloads = [
+            {
+                "name":"1",
+                "image":self.gen_image(),
+            },
+            {
+                "name":"2",
+                "image":self.gen_image() + "1234",
+                "gender":"a",
+                "health_status":"b",
+                "desexing_status":"c",
+                "description":"d"
+            }
+        ]
+
+        wrong_payloads = [
+            {
+                "name":"1",
+                "image":self.gen_image()
+            },
+            {
+                "name":"3"
+            },
+            {
+                "name":"4",
+                "image":"a"
+            },
+            {
+                "image":"2",
+                "gender":"a",
+                "health_status":"b",
+                "desexing_status":"c",
+                "description":"d"
+            }
+        ]
+        # Permission denied
+        resp = self.client.post(
+            "/cats/",
+            data=json.dumps(correct_payloads[0]),
+            content_type='application/json',
+            headers=wrong_header
+        )
+        self.assertIsNotNone(resp.data)
+        resp = str(json.loads(resp.data))
+        self.assertIn("Permission", resp)
+
+        for payload in correct_payloads:
+            resp = self.client.post(
+                "/cats/",
+                data=json.dumps(payload),
+                content_type='application/json',
+                headers=correct_header
+            )
+            self.assertIsNotNone(resp.data)
+            # print(resp.data)
+            resp = json.loads(resp.data)
+            self.assertDictContainsSubset({
+                "code":0,
+                "msg":""
+            }, resp)
+        
+        for payload in wrong_payloads:
+            resp = self.client.post(
+                "/cats/",
+                data=json.dumps(payload),
+                content_type='application/json',
+                headers=correct_header
+            )
+            # print(resp.data)
+            resp = json.loads(resp.data)
+            self.assertDictContainsSubset({
+                "code":100,
+            }, resp)
+
 
     def test_identify_perf(self):
 
-        correct_headers = {
+        correct_header = {
             "Auth-Token": self.get_token("Alice", is_admin=False)[0]
         }
+        # print(correct_header)
         wrong_headers = {"Auth-Token": "nfjigqripqwrt"}
 
         with open(self.app.instance_path + "/64.txt", "r") as f:
@@ -104,7 +207,7 @@ class TestCats(unittest.TestCase):
                 "/identify/",
                 data=json.dumps(correct_content),
                 content_type='application/json',
-                headers=correct_headers
+                headers=correct_header
             )
             data = json.loads(resp.data)
             self.assertDictContainsSubset({
