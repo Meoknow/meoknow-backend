@@ -31,7 +31,8 @@ RESP_OK = {"code":0, "msg":"", "data":{}}
 
 def add_functions(app):
 
-	mp.set_start_method('spawn')
+	if mp.get_start_method() == None:
+		mp.set_start_method('spawn')
 	parent_conn, child_conn = mp.Pipe()
 	ml_process = mp.Process(target=ml.run, args=(child_conn,))
 	ml_process.start()
@@ -87,7 +88,6 @@ def add_functions(app):
 		img_url = os.path.join(app.instance_path, "images", img_name)
 		pho_url = PHOTO_PREFIX + img_name
 		# give the image to model
-		# TODO
 		ml_lock.acquire()
 		try:
 			parent_conn.send(img_url)
@@ -147,7 +147,6 @@ def add_functions(app):
 		owner = request.user_id
 		try:
 			# check if current user is admin
-			# TODO
 			if owner == "admin":
 				idhis = IdentifyHistory.query.order_by(IdentifyHistory.upl_time.desc()).all()
 			else:
@@ -169,7 +168,6 @@ def add_functions(app):
 	
 	@app.route('/cats/', methods = ['GET'])
 	@exception_handler
-	@login_check()
 	def getallcats():
 		infos = CatInfo.query.all()
 		cats_data = []
@@ -191,7 +189,11 @@ def add_functions(app):
 		if img_64 == None and img_url != None:
 			pass
 		elif img_64 != None and img_url == None:
-			img_url = PHOTO_PREFIX+upload_photo(img_64, "public")
+			img_url = upload_photo(img_64, "public")
+			if img_url != None:
+				img_url = PHOTO_PREFIX + img_url
+			else:
+				return ERROR_INVALID_DATA
 		else:
 			return ERROR_INVALID_DATA
 
@@ -217,7 +219,6 @@ def add_functions(app):
 	
 	@app.route('/cats/<int:cat_id>', methods = ['GET'])
 	@exception_handler
-	@login_check()
 	def get_onecat(cat_id):
 		try:
 			info = CatInfo.query.filter_by(cat_id=cat_id).first()
@@ -242,7 +243,11 @@ def add_functions(app):
 		if img_64 == None:
 			pass
 		elif img_64 != None and img_url == None:
-			img_url = PHOTO_PREFIX+upload_photo(img_64, "public")
+			img_url = upload_photo(img_64, "public")
+			if img_url != None:
+				img_url = PHOTO_PREFIX + img_url
+			else:
+				return ERROR_INVALID_DATA
 		else:
 			return ERROR_INVALID_DATA
 				
@@ -283,7 +288,7 @@ def add_functions(app):
 		if photo == None:
 			abort(404)
 		
-		# TODO: check if current user is admin
+		# check if current user is admin
 		if photo.owner == 'public' or photo.owner == request.user_id or request.user_id == 'admin':
 			img_url = os.path.join(app.instance_path, "images", photo_name)
 

@@ -50,7 +50,7 @@ def login_check(admin=False):
 		def wrapper(*args, **kwargs):
 			# temporarily disabling login_check
 			if BYPASS_LOGIN_CHECK:
-				request.user_id = None
+				request.user_id = ""
 				return func(*args, **kwargs)
 			if session.get("verified", False):
 				request.user_id = "admin"

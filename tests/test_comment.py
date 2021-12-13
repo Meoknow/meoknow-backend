@@ -1,3 +1,4 @@
+import os
 import unittest, json
 from meoknow import create_app, db
 from meoknow.model import CatInfo, Comment
@@ -28,7 +29,8 @@ class TestComment(unittest.TestCase):
         '''.replace("\n", "").replace(" ", "")
 
     def setUp(self):
-        self.app = create_app()
+        test_instance_path = os.path.join(os.getcwd(), "test_instance")
+        self.app = create_app({"instance_path":test_instance_path})
         self.app.testing = True
         self.client = self.app.test_client()
         
