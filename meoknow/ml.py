@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import json
 #from ml_model import MobileNet
 #from dataset import myDataset
+import sys
+sys.path.append("/home/meoknow/meoknow-backend")
+sys.path.append("/home/meoknow/meoknow-backend/meoknow")
 import os 
 import numpy as np
 import cv2
@@ -27,8 +30,8 @@ def run(conn) :
 
     model_weight_path = "/home/meoknow/logs/model0017.pth"
 
-    if os.path.exists(model_weight_path):
-        print(1)
+    #if os.path.exists(model_weight_path):
+    #    print(1)
     #model.load_state_dict(torch.load(model_weight_path))
     model1 = torch.load(model_weight_path,map_location='cpu')
     data_transform = transforms.Compose(
@@ -42,7 +45,7 @@ def run(conn) :
         while 1 :
             dict={"cat":[],"score":[],"error":[]}
             image_path = conn.recv()
-            print(image_path)
+            #print(image_path)
             try :
                 img = Image.open(image_path)
             except FileNotFoundError as e :
@@ -74,8 +77,8 @@ def run(conn) :
             lsfout = lsf(output)
 
             a = lsfout.numpy()
-            print(a.argsort()[::-1]+1) #id
-            print(a[a.argsort()[::-1]]) #分数
+            #print(a.argsort()[::-1]+1) #id
+            #print(a[a.argsort()[::-1]]) #分数
 
 
 
