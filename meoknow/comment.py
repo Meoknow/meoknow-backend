@@ -332,9 +332,10 @@ def add_functions(app):
 
 	@app.route("/comment_photo/<string:photo_name>", methods=["GET"])
 	def get_photo(photo_name):
-		# TODO: check ../
 		img_url = os.path.join(app.instance_path, "images", photo_name)
 		if os.path.exists(img_url):
+			if os.path.isdir(img_url):
+				abort(404)
 			img_fmt = photo_name.split('.')[-1]
 			return send_file(
 				img_url,

@@ -239,8 +239,7 @@ def add_functions(app):
 
 	def format_comment(comment):
 		attributes = [
-			"comment_id", "main_comment_id", "reply_id", "is_reply",
-			"like", "create_time", "owner", "parent_owner", "cat_id",
+			"comment_id", "like", "create_time", "owner", "cat_id",
 			"content", "is_hidden"
 		]
 		data = {
