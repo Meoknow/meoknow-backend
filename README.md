@@ -5,6 +5,7 @@
 *   [部署](##)
 *   [运行](##运行)
 *   [测试](##测试)
+*   [配置](##配置)
 
 ## 部署
 
@@ -21,6 +22,7 @@
 	- instance/
 		- meoknow.db
 		- photos/
+		- config.py
 	- tests/
 	- test_instance/
 	README.md
@@ -84,6 +86,7 @@ flask run
 ```
 
 *   本地查看 [http://127.0.0.1:5000/hello]()，前端可以往[localhost:5000/]()发送数据
+*   你也可以打开[http://39.104.59.169:3000/admin/login](http://39.104.59.169:3000/admin/login)进入管理员界面
 
 ### 对于Linux系统
 
@@ -133,3 +136,26 @@ python tests/test_comment.py
 python tests/test_cats.py
 ```
 
+
+
+## 配置
+
+*   默认配置文件为 `instance/config.py`
+
+*   在部署到新环境时，你需要配置以下内容：
+
+    ```python
+    MINI_PROGRAM_APPID = "appid" 						# 小程序的APPID
+    MINI_PROGRAM_APPSECRET = "appsecret" 				# 小程序的APPSECRET
+    JWT_SECRET = "jwtsecret"							# 
+    JWT_ALGORITHM = "HS512"								# 
+    JWT_EXPIRE_SECONDS = 30 * 86400 					# 1 month
+    URI_SCHEME = "http"									# 
+    URI_AUTHORITY = "39.104.59.169:3000"				# 服务器的地址
+    ML_LOG_PATH = "/home/meoknow/logs/model0017.pth"	# 机器学习模型的路径
+    ADMIN_USERNAME = "admin_username"					# 管理员登录的用户名
+    ADMIN_PASSWORD = "admin_password"					# 管理员登录的密码
+    BYPASS_LOGIN_CHECK = False							# 是否关闭登录验证
+    ```
+
+    
