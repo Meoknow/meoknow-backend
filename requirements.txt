@@ -1,0 +1,13 @@
+Flask==2.0.2
+Flask_SQLAlchemy==2.5.1
+matplotlib==3.4.3
+numpy==1.21.1
+opencv_contrib_python_headless==4.5.4.58
+Pillow==8.4.0
+PyJWT==2.3.0
+requests==2.26.0
+SQLAlchemy==1.4.27
+torch==1.10.0+cpu
+torchvision==0.11.1+cpu
+Werkzeug==2.0.2
+gunicorn==20.1.0

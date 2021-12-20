@@ -1,0 +1,44 @@
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.selected-cat {
+    background-color: aliceblue;
+}
+
+.delete-button {
+    padding: 0.35em 0.65em;
+    font-size: .75em;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.comment-message {
+    text-overflow:ellipsis;
+    overflow:hidden;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 1px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

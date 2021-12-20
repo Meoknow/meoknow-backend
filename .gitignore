@@ -1,3 +1,5 @@
+config.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -64,6 +66,7 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+test_instance/*
 
 # Scrapy stuff:
 .scrapy
@@ -127,3 +130,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*/static/
