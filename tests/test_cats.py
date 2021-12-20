@@ -5,7 +5,7 @@ import unittest, json
 from meoknow import create_app, db
 from meoknow.model import CatInfo, Comment
 
-TEST_PERF_ITER = 1
+TEST_PERF_ITER = 20
 TEST_STRESS_NUM = 10
 
 class TestCats(unittest.TestCase):

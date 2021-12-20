@@ -7,14 +7,15 @@ import matplotlib.pyplot as plt
 import json
 #from ml_model import MobileNet
 #from dataset import myDataset
-import sys
-sys.path.append("/home/meoknow/meoknow-backend")
-sys.path.append("/home/meoknow/meoknow-backend/meoknow")
+import sys, os
+sys.path.append(os.getcwd())
+sys.path.append(os.path.join(os.getcwd(), "meoknow"))
 import os 
 import numpy as np
 import cv2
 import torch.nn as nn
 import time 
+from flask import current_app
 
 def run(conn) :
     
@@ -27,8 +28,7 @@ def run(conn) :
         "5":"姜丝鸭",
         "6":"小尾巴"}
 
-
-    model_weight_path = "/home/meoknow/logs/model0017.pth"
+    model_weight_path = current_app.config.get("ML_LOG_PATH")
 
     #if os.path.exists(model_weight_path):
     #    print(1)
