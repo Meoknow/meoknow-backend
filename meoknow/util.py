@@ -1,6 +1,9 @@
+from datetime import timedelta
 from flask import jsonify, current_app
 import functools
 import traceback
+
+TIME_DELTA = current_app.config.get("TIME_DELTA", 8)
 
 def exception_handler(func):
     @functools.wraps(func)
@@ -30,7 +33,9 @@ def debug_only(func):
     return wrapper
 
 def format_time(now):
+    now = now + timedelta(hours=TIME_DELTA)
     return now.strftime('%Y-%m-%d %H:%M:%S')
 
 def format_timestamp(now):
+    now = now + timedelta(hours=TIME_DELTA)
     return int(now.timestamp())

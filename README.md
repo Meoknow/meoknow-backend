@@ -152,6 +152,7 @@ python tests/test_cats.py
     JWT_SECRET = "jwtsecret"
     JWT_ALGORITHM = "HS512"
     JWT_EXPIRE_SECONDS = 30 * 86400                     # 1 month
+    TIME_DELTA = 8
     URI_SCHEME = "http"
     URI_AUTHORITY = "39.104.59.169:3000"                # 服务器的地址
     ML_LOG_PATH = "/home/meoknow/logs/model0017.pth"    # 机器学习模型的路径
