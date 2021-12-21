@@ -2,12 +2,14 @@
 
 ## 目录
 
-*   [部署](##)
-*   [运行](##运行)
-*   [测试](##测试)
-*   [配置](##配置)
+*   [部署](#setup)
+*   [运行](#run)
+*   [测试](#test)
+*   [配置](#config)
 
-## 部署
+
+
+## 部署 <a id="setup"> </a>
 
 文件夹结构大致如下
 
@@ -16,16 +18,16 @@
 - venv/
 - logs/					# 存放ML的模型文件
 - meoknow-backend/
-	- .git
-	- meoknow/
-		- __init__.py
-	- instance/
-		- meoknow.db
-		- photos/
-		- config.py
-	- tests/
-	- test_instance/
-	README.md
+    - .git
+    - meoknow/
+        - __init__.py
+    - instance/
+        - meoknow.db
+        - photos/
+        - config.py
+    - tests/
+    - test_instance/
+    README.md
 ```
 
 *   创建虚拟环境
@@ -59,7 +61,7 @@ pip install -r requirements.txt
 
 
 
-## 运行
+## 运行 <a id="run"> </a>
 
 ### 对于Windows系统
 
@@ -125,7 +127,7 @@ gunicorn "meoknow:create_app()" -b 0.0.0.0:3000 -w 1 --daemon
 
 
 
-## 测试
+## 测试  <a id="test"> </a>
 
 *   激活venv环境
 *   在meoknow-backend目录下运行：
@@ -138,24 +140,24 @@ python tests/test_cats.py
 
 
 
-## 配置
+## 配置 <a id="config"> </a>
 
 *   默认配置文件为 `instance/config.py`
 
 *   在部署到新环境时，你需要配置以下内容：
 
     ```python
-    MINI_PROGRAM_APPID = "appid" 						# 小程序的APPID
-    MINI_PROGRAM_APPSECRET = "appsecret" 				# 小程序的APPSECRET
-    JWT_SECRET = "jwtsecret"							# 
-    JWT_ALGORITHM = "HS512"								# 
-    JWT_EXPIRE_SECONDS = 30 * 86400 					# 1 month
-    URI_SCHEME = "http"									# 
-    URI_AUTHORITY = "39.104.59.169:3000"				# 服务器的地址
-    ML_LOG_PATH = "/home/meoknow/logs/model0017.pth"	# 机器学习模型的路径
-    ADMIN_USERNAME = "admin_username"					# 管理员登录的用户名
-    ADMIN_PASSWORD = "admin_password"					# 管理员登录的密码
-    BYPASS_LOGIN_CHECK = False							# 是否关闭登录验证
+    MINI_PROGRAM_APPID = "appid"                        # 小程序的APPID
+    MINI_PROGRAM_APPSECRET = "appsecret"                # 小程序的APPSECRET
+    JWT_SECRET = "jwtsecret"
+    JWT_ALGORITHM = "HS512"
+    JWT_EXPIRE_SECONDS = 30 * 86400                     # 1 month
+    URI_SCHEME = "http"
+    URI_AUTHORITY = "39.104.59.169:3000"                # 服务器的地址
+    ML_LOG_PATH = "/home/meoknow/logs/model0017.pth"    # 机器学习模型的路径
+    ADMIN_USERNAME = "admin_username"                   # 管理员登录的用户名
+    ADMIN_PASSWORD = "admin_password"                   # 管理员登录的密码
+    BYPASS_LOGIN_CHECK = False                          # 是否关闭登录验证
     ```
 
     
